@@ -1,0 +1,585 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>PRM-313 Skimmer Dashboard</title>
+  <style>
+    :root {
+      --bg: #f6f8fb;
+      --panel: #ffffff;
+      --text: #172033;
+      --muted: #667085;
+      --line: #e4e7ec;
+      --green: #12b76a;
+      --green-bg: #ecfdf3;
+      --yellow: #f79009;
+      --yellow-bg: #fffaeb;
+      --red: #f04438;
+      --red-bg: #fef3f2;
+      --gray: #98a2b3;
+      --gray-bg: #f2f4f7;
+      --blue: #2e90fa;
+      --blue-bg: #eff8ff;
+      --shadow: 0 10px 25px rgba(16, 24, 40, 0.08);
+      --radius: 18px;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    header {
+      background: linear-gradient(135deg, #172033 0%, #344054 100%);
+      color: #fff;
+      padding: 34px 32px 28px;
+    }
+
+    .header-inner {
+      max-width: 1240px;
+      margin: 0 auto;
+    }
+
+    .eyebrow {
+      font-size: 13px;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: #d0d5dd;
+      margin-bottom: 8px;
+      font-weight: 700;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(28px, 4vw, 44px);
+      line-height: 1.05;
+    }
+
+    .subtitle {
+      max-width: 900px;
+      margin-top: 12px;
+      color: #eaecf0;
+      font-size: 16px;
+      line-height: 1.55;
+    }
+
+    main {
+      max-width: 1240px;
+      margin: -18px auto 48px;
+      padding: 0 20px;
+    }
+
+    .top-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 16px;
+      margin-bottom: 18px;
+    }
+
+    .metric-card, .panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    .metric-card {
+      padding: 18px;
+      min-height: 140px;
+    }
+
+    .metric-label {
+      font-size: 13px;
+      color: var(--muted);
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+      margin-bottom: 10px;
+    }
+
+    .metric-value {
+      font-size: 26px;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    .metric-note {
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.45;
+    }
+
+    .dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      display: inline-block;
+      flex: 0 0 auto;
+    }
+    .dot.green { background: var(--green); }
+    .dot.yellow { background: var(--yellow); }
+    .dot.red { background: var(--red); }
+    .dot.gray { background: var(--gray); }
+    .dot.blue { background: var(--blue); }
+
+    .panel { padding: 20px; margin-bottom: 18px; }
+    .panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    h2 { margin: 0; font-size: 20px; }
+    .section-note { margin: 6px 0 0; color: var(--muted); font-size: 14px; }
+
+    .controls {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    select, input[type="search"] {
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 10px 12px;
+      background: #fff;
+      color: var(--text);
+      font-size: 14px;
+      min-width: 180px;
+    }
+
+    .status-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .status-card {
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 16px;
+      background: #fff;
+      cursor: pointer;
+      transition: transform .16s ease, border-color .16s ease, box-shadow .16s ease;
+    }
+    .status-card:hover { transform: translateY(-2px); box-shadow: 0 10px 18px rgba(16, 24, 40, .07); }
+    .status-card.active { border-color: var(--blue); box-shadow: 0 0 0 3px var(--blue-bg); }
+    .status-title { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 8px; }
+    .status-title strong { font-size: 16px; }
+    .status-desc { color: var(--muted); font-size: 13px; line-height: 1.45; }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 9px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+    .pill.green { color: #027a48; background: var(--green-bg); }
+    .pill.yellow { color: #b54708; background: var(--yellow-bg); }
+    .pill.red { color: #b42318; background: var(--red-bg); }
+    .pill.gray { color: #344054; background: var(--gray-bg); }
+    .pill.blue { color: #175cd3; background: var(--blue-bg); }
+
+    table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: #fff;
+    }
+    th, td {
+      text-align: left;
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--line);
+      vertical-align: top;
+      font-size: 14px;
+    }
+    th {
+      background: #f9fafb;
+      color: #344054;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+    }
+    tr:last-child td { border-bottom: 0; }
+    tbody tr:hover { background: #fcfcfd; }
+
+    .owners { display: flex; flex-wrap: wrap; gap: 6px; }
+
+    .two-col {
+      display: grid;
+      grid-template-columns: 1.15fr .85fr;
+      gap: 18px;
+    }
+
+    .timeline {
+      border-left: 3px solid var(--line);
+      margin-left: 10px;
+      padding-left: 18px;
+    }
+    .timeline-item {
+      position: relative;
+      margin-bottom: 18px;
+    }
+    .timeline-item::before {
+      content: "";
+      position: absolute;
+      left: -27px;
+      top: 4px;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: var(--blue);
+      border: 3px solid #fff;
+      box-shadow: 0 0 0 1px var(--line);
+    }
+    .timeline-title { font-weight: 800; margin-bottom: 4px; }
+    .timeline-meta { color: var(--muted); font-size: 13px; margin-bottom: 6px; }
+    .timeline-body { color: #344054; font-size: 14px; line-height: 1.45; }
+
+    .decision-list, .source-list {
+      display: grid;
+      gap: 10px;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+    .decision-list li, .source-list li {
+      background: #f9fafb;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 12px;
+      font-size: 14px;
+      line-height: 1.4;
+    }
+    .source-list a { color: #175cd3; text-decoration: none; font-weight: 700; }
+    .source-list a:hover { text-decoration: underline; }
+
+    .hidden { display: none !important; }
+
+    .footer-note {
+      color: var(--muted);
+      font-size: 12px;
+      text-align: center;
+      margin-top: 24px;
+    }
+
+    @media (max-width: 980px) {
+      .top-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .status-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .two-col { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 640px) {
+      header { padding: 28px 20px; }
+      .top-grid, .status-grid { grid-template-columns: 1fr; }
+      .panel-header { flex-direction: column; }
+      select, input[type="search"] { width: 100%; min-width: 0; }
+      th:nth-child(3), td:nth-child(3) { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="header-inner">
+      <div class="eyebrow">PRM-313 Daily Skimmer Dashboard</div>
+      <h1>Coke Code and Go (SWIPE) — PRM-313</h1>
+      <div class="subtitle">Shared-project dashboard built from the latest Jira, Confluence, Slack, Outlook, Teams, and SharePoint skim. Designed for fast owner routing, risk review, and reviewed/closed separation.</div>
+    </div>
+  </header>
+
+  <main>
+    <section class="top-grid" aria-label="Executive metrics">
+      <div class="metric-card">
+        <div class="metric-label">Overall</div>
+        <div class="metric-value"><span class="dot yellow"></span> At Risk</div>
+        <div class="metric-note">Active work is moving, but a few dependencies and overdue items still need cleanup.</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">Needs Attention</div>
+        <div class="metric-value"><span class="dot red"></span> 5</div>
+        <div class="metric-note">Blocked or overdue items across API, ADM, MM, and ISEC.</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">Progress Since Last Skim</div>
+        <div class="metric-value"><span class="dot green"></span> 3</div>
+        <div class="metric-note">QA moved forward, test data was clarified, and support docs landed.</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">Reviewed / Closed</div>
+        <div class="metric-value"><span class="dot gray"></span> 3</div>
+        <div class="metric-note">Done and abandoned items are separated out so they stay out of the active queue.</div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-header">
+        <div>
+          <h2>Stoplight Summary</h2>
+          <p class="section-note">Click a card to filter the action queue by status.</p>
+        </div>
+        <div class="controls">
+          <button class="pill blue" type="button" onclick="resetFilters()">Reset filters</button>
+        </div>
+      </div>
+      <div class="status-grid" id="statusCards">
+        <div class="status-card" data-filter="Blocked" onclick="setStatusFilter('Blocked', this)">
+          <div class="status-title"><strong>Blocked</strong><span class="pill red">2</span></div>
+          <div class="status-desc">Immediate follow-up needed before dependent work can proceed.</div>
+        </div>
+        <div class="status-card" data-filter="At Risk" onclick="setStatusFilter('At Risk', this)">
+          <div class="status-title"><strong>At Risk</strong><span class="pill yellow">5</span></div>
+          <div class="status-desc">Still live, but should be watched closely for drift or due-date mismatch.</div>
+        </div>
+        <div class="status-card" data-filter="On Track" onclick="setStatusFilter('On Track', this)">
+          <div class="status-title"><strong>On Track / Closed</strong><span class="pill green">6</span></div>
+          <div class="status-desc">Progressing normally or intentionally closed out.</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-header">
+        <div>
+          <h2>Current Action Queue</h2>
+          <p class="section-note">Search by item, owner, or note.</p>
+        </div>
+        <div class="controls">
+          <input id="searchBox" type="search" placeholder="Search item, note, owner..." oninput="applyFilters()" />
+          <select id="statusFilter" onchange="applyFilters()">
+            <option value="">All statuses</option>
+            <option value="Blocked">Blocked</option>
+            <option value="At Risk">At Risk</option>
+            <option value="On Track">On Track</option>
+            <option value="Reviewed / Closed">Reviewed / Closed</option>
+          </select>
+          <select id="ownerFilter" onchange="applyFilters()">
+            <option value="">All owners</option>
+            <option value="Vaibhav">Vaibhav Gupta</option>
+            <option value="Leopoldo">Leopoldo Lopez</option>
+            <option value="Robert">Robert Heller</option>
+            <option value="Amit">Amit Kumar Rastogi</option>
+            <option value="Kevin">Kevin Laverty</option>
+            <option value="Jamie">Jamie Wackerman</option>
+            <option value="Amy">Amy Price</option>
+            <option value="Scott">Scott Dansbury</option>
+            <option value="Erica">Erica Sundberg</option>
+          </select>
+        </div>
+      </div>
+
+      <table id="actionTable">
+        <thead>
+          <tr>
+            <th>Status</th>
+            <th>Open Item</th>
+            <th>Why It Matters</th>
+            <th>Owner / Next Move</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr data-status="Blocked" data-owner="Vaibhav Gupta API" data-text="API-1454 blocks ADM-1796 SalesPayment EFTBATCH NO_EFT_COKE_SWIPE">
+            <td><span class="pill red">Blocked</span></td>
+            <td><strong><a href="https://365retailmarkets.atlassian.net/browse/API-1454" target="_blank" rel="noopener">API-1454</a></strong><br>Set <code>SalesPayment.EFTBATCH = "NO_EFT_COKE_SWIPE"</code>.</td>
+            <td>Blocks ADM QA validation for EFT exclusion.</td>
+            <td><div class="owners"><span class="pill blue">Vaibhav</span><span class="pill blue">API</span></div></td>
+          </tr>
+          <tr data-status="Blocked" data-owner="Satheesh Kumar ADM QA" data-text="ADM-1796 blocked by API-1454 ADM-4248 MM-1863 Test4 transaction data">
+            <td><span class="pill red">Blocked</span></td>
+            <td><strong><a href="https://365retailmarkets.atlassian.net/browse/ADM-1796" target="_blank" rel="noopener">ADM-1796</a></strong><br>QA cannot validate until dependencies are ready.</td>
+            <td>Needs API change, Test4 processor setup, and transaction data before moving forward.</td>
+            <td><div class="owners"><span class="pill blue">Satheesh</span><span class="pill blue">ADM QA</span></div></td>
+          </tr>
+          <tr data-status="Blocked" data-owner="Kevin Laverty MM-KIO" data-text="MM-1863 Test4 transaction setup data before July 10">
+            <td><span class="pill red">Blocked</span></td>
+            <td><strong><a href="https://365retailmarkets.atlassian.net/browse/MM-1863" target="_blank" rel="noopener">MM-1863</a></strong><br>Prepare Test4 transaction data for ADM QA.</td>
+            <td>Needed to validate credit, EFT, processor, and multi-org behavior in Test4.</td>
+            <td><div class="owners"><span class="pill blue">Kevin</span><span class="pill blue">MM-KIO</span></div></td>
+          </tr>
+          <tr data-status="At Risk" data-owner="Leopoldo Lopez ADM" data-text="ADM-4248 QA in progress processor 53 Test4">
+            <td><span class="pill yellow">At Risk</span></td>
+            <td><strong><a href="https://365retailmarkets.atlassian.net/browse/ADM-4248" target="_blank" rel="noopener">ADM-4248</a></strong><br>QA in progress; confirm Test4 processor key 53.</td>
+            <td>Due today and still a hard dependency for QA readiness.</td>
+            <td><div class="owners"><span class="pill blue">Leopoldo</span><span class="pill blue">ADM</span></div></td>
+          </tr>
+          <tr data-status="At Risk" data-owner="Robert Heller ISEC" data-text="ISEC-6066 overdue Pronto network status">
+            <td><span class="pill yellow">At Risk</span></td>
+            <td><strong><a href="https://365retailmarkets.atlassian.net/browse/ISEC-6066" target="_blank" rel="noopener">ISEC-6066</a></strong><br>Network / Pronto support still needs an update.</td>
+            <td>Due date passed; current status affects rollout confidence.</td>
+            <td><div class="owners"><span class="pill blue">Robert</span><span class="pill blue">ISEC</span></div></td>
+          </tr>
+          <tr data-status="At Risk" data-owner="Amit Kumar Rastogi ADM" data-text="ADM-1779 overdue release alignment">
+            <td><span class="pill yellow">At Risk</span></td>
+            <td><strong><a href="https://365retailmarkets.atlassian.net/browse/ADM-1779" target="_blank" rel="noopener">ADM-1779</a></strong><br>In progress past the original target date.</td>
+            <td>Needs cleanup or re-baselining to reflect actual delivery timing.</td>
+            <td><div class="owners"><span class="pill blue">Amit</span><span class="pill blue">ADM</span></div></td>
+          </tr>
+          <tr data-status="At Risk" data-owner="Amy Price API" data-text="API-1194 July 16 release">
+            <td><span class="pill yellow">At Risk</span></td>
+            <td><strong><a href="https://365retailmarkets.atlassian.net/browse/API-1194" target="_blank" rel="noopener">API-1194</a></strong><br>Core API epic for the July 16 release train.</td>
+            <td>Active and moving, but still needs completion planning against downstream dependencies.</td>
+            <td><div class="owners"><span class="pill blue">Amy</span><span class="pill blue">API</span></div></td>
+          </tr>
+          <tr data-status="At Risk" data-owner="Jamie Wackerman ADM" data-text="ADM-3822 ready for dev July 16">
+            <td><span class="pill yellow">At Risk</span></td>
+            <td><strong><a href="https://365retailmarkets.atlassian.net/browse/ADM-3822" target="_blank" rel="noopener">ADM-3822</a></strong><br>Ready for dev on the July 16 path.</td>
+            <td>Needs handoff discipline so it does not become a hidden bottleneck.</td>
+            <td><div class="owners"><span class="pill blue">Jamie</span><span class="pill blue">ADM</span></div></td>
+          </tr>
+          <tr data-status="At Risk" data-owner="Scott Dansbury PMO" data-text="PMO-206 operational work no due date">
+            <td><span class="pill yellow">At Risk</span></td>
+            <td><strong><a href="https://365retailmarkets.atlassian.net/browse/PMO-206" target="_blank" rel="noopener">PMO-206</a></strong><br>Operational readiness work.</td>
+            <td>No due date; still active and should stay visible.</td>
+            <td><div class="owners"><span class="pill blue">Scott</span><span class="pill blue">PMO</span></div></td>
+          </tr>
+          <tr data-status="At Risk" data-owner="Erica Sundberg PMO" data-text="PMO-362 blocked documentation customer facing">
+            <td><span class="pill yellow">At Risk</span></td>
+            <td><strong><a href="https://365retailmarkets.atlassian.net/browse/PMO-362" target="_blank" rel="noopener">PMO-362</a></strong><br>Customer-facing documentation remains blocked.</td>
+            <td>Support/docs are still needed for launch readiness.</td>
+            <td><div class="owners"><span class="pill blue">Erica</span><span class="pill blue">PMO</span></div></td>
+          </tr>
+          <tr data-status="On Track" data-owner="Smita Kotecha Mobile Market" data-text="MM-830 ready for dev July 16">
+            <td><span class="pill green">On Track</span></td>
+            <td><strong><a href="https://365retailmarkets.atlassian.net/browse/MM-830" target="_blank" rel="noopener">MM-830</a></strong><br>Ready for dev for July 16.</td>
+            <td>Good progress; keep moving with the release train.</td>
+            <td><div class="owners"><span class="pill blue">Smita</span><span class="pill blue">MM</span></div></td>
+          </tr>
+          <tr data-status="On Track" data-owner="Smita Kotecha Mobile Market" data-text="MM-1249 ready for dev Aug 27">
+            <td><span class="pill green">On Track</span></td>
+            <td><strong><a href="https://365retailmarkets.atlassian.net/browse/MM-1249" target="_blank" rel="noopener">MM-1249</a></strong><br>Ready for dev for August 27.</td>
+            <td>Second release track remains healthy.</td>
+            <td><div class="owners"><span class="pill blue">Smita</span><span class="pill blue">MM</span></div></td>
+          </tr>
+          <tr data-status="Reviewed / Closed" data-owner="Closed" data-text="MM-829 done">
+            <td><span class="pill gray">Closed</span></td>
+            <td><strong><a href="https://365retailmarkets.atlassian.net/browse/MM-829" target="_blank" rel="noopener">MM-829</a></strong><br>Done.</td>
+            <td>Kept in reviewed/closed so it does not reappear as an active item.</td>
+            <td><div class="owners"><span class="pill blue">Closed</span></div></td>
+          </tr>
+          <tr data-status="Reviewed / Closed" data-owner="Closed" data-text="MM-1250 abandoned">
+            <td><span class="pill gray">Closed</span></td>
+            <td><strong><a href="https://365retailmarkets.atlassian.net/browse/MM-1250" target="_blank" rel="noopener">MM-1250</a></strong><br>Abandoned.</td>
+            <td>Explicitly reviewed and intentionally closed.</td>
+            <td><div class="owners"><span class="pill blue">Closed</span></div></td>
+          </tr>
+          <tr data-status="Reviewed / Closed" data-owner="Closed" data-text="MM-1547 abandoned">
+            <td><span class="pill gray">Closed</span></td>
+            <td><strong><a href="https://365retailmarkets.atlassian.net/browse/MM-1547" target="_blank" rel="noopener">MM-1547</a></strong><br>Abandoned.</td>
+            <td>Explicitly reviewed and intentionally closed.</td>
+            <td><div class="owners"><span class="pill blue">Closed</span></div></td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="two-col">
+      <div class="panel">
+        <div class="panel-header">
+          <div>
+            <h2>Material Change Log</h2>
+            <p class="section-note">Latest skim signals only.</p>
+          </div>
+        </div>
+        <div class="timeline">
+          <div class="timeline-item">
+            <div class="timeline-title">QA readiness got a concrete blocker list</div>
+            <div class="timeline-meta">June 23 skim</div>
+            <div class="timeline-body">The new QA path now depends on <a href="https://365retailmarkets.atlassian.net/browse/API-1454" target="_blank" rel="noopener">API-1454</a>, <a href="https://365retailmarkets.atlassian.net/browse/ADM-4248" target="_blank" rel="noopener">ADM-4248</a>, and <a href="https://365retailmarkets.atlassian.net/browse/MM-1863" target="_blank" rel="noopener">MM-1863</a>.</div>
+          </div>
+          <div class="timeline-item">
+            <div class="timeline-title">Test4 transaction data was clarified</div>
+            <div class="timeline-meta">June 23 skim</div>
+            <div class="timeline-body">MM/KIO data setup now includes Coke Swipe, Heartland, AAFES, EFT batch, and multi-org coverage requirements.</div>
+          </div>
+          <div class="timeline-item">
+            <div class="timeline-title">Support documentation was published</div>
+            <div class="timeline-meta">June 23 skim</div>
+            <div class="timeline-body">A new support doc now captures ownership and task ownership paths for customer-facing support.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-header">
+          <div>
+            <h2>Decision Log</h2>
+            <p class="section-note">Use this to separate confirmed decisions from open items.</p>
+          </div>
+        </div>
+        <ul class="decision-list">
+          <li><strong>Reviewed / closed items stay closed.</strong> Done and abandoned tickets remain in the closed bucket unless reopened.</li>
+          <li><strong>Shared ownership is the default.</strong> Any owner/team with action responsibility is surfaced, not just Jamie.</li>
+          <li><strong>Clickable issue links only.</strong> All Jira references are rendered as links for quick navigation.</li>
+          <li><strong>QA gates are explicit.</strong> API-1454, ADM-4248, and MM-1863 are the active QA dependency set.</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-header">
+        <div>
+          <h2>Source Links</h2>
+          <p class="section-note">Primary artifacts used by the skimmer.</p>
+        </div>
+      </div>
+      <ul class="source-list">
+        <li><a href="https://365retailmarkets.atlassian.net/browse/PRM-313" target="_blank" rel="noopener">Jira PRM-313</a> — initiative status and scope.</li>
+        <li><a href="https://365retailmarkets.atlassian.net/wiki/spaces/IA/pages/6815154200/PRM-313+Coke+Code+and+Go+SWIPE+-+S1U365+with+PCV" target="_blank" rel="noopener">Solution Design: PRM-313 Coke Code and Go</a> — design baseline and open questions.</li>
+        <li><a href="https://365retailmarkets.atlassian.net/wiki/spaces/QA/pages/6870663220/ADM-3822+-+Coke+Swipe+ADM+P2+Test+Plan" target="_blank" rel="noopener">ADM-3822 QA Test Plan</a> — current QA checklist.</li>
+        <li><a href="https://365retailmarkets.atlassian.net/wiki/spaces/PS/pages/6874955777/365+Coke+Swipe+Support+Documentation" target="_blank" rel="noopener">365 + Coke Swipe Support Documentation</a> — support ownership and handoff info.</li>
+      </ul>
+    </section>
+
+    <div class="footer-note">Generated from the PRM-313 skimmer output. This dashboard is static HTML; use browser refresh after regenerating from a new skim.</div>
+  </main>
+
+  <script>
+    function setStatusFilter(status, card) {
+      document.getElementById('statusFilter').value = status;
+      document.querySelectorAll('.status-card').forEach(c => c.classList.remove('active'));
+      card.classList.add('active');
+      applyFilters();
+    }
+
+    function resetFilters() {
+      document.getElementById('statusFilter').value = '';
+      document.getElementById('ownerFilter').value = '';
+      document.getElementById('searchBox').value = '';
+      document.querySelectorAll('.status-card').forEach(c => c.classList.remove('active'));
+      applyFilters();
+    }
+
+    function applyFilters() {
+      const status = document.getElementById('statusFilter').value.toLowerCase();
+      const owner = document.getElementById('ownerFilter').value.toLowerCase();
+      const search = document.getElementById('searchBox').value.toLowerCase();
+      const rows = document.querySelectorAll('#actionTable tbody tr');
+
+      rows.forEach(row => {
+        const rowStatus = (row.dataset.status || '').toLowerCase();
+        const rowOwner = (row.dataset.owner || '').toLowerCase();
+        const rowText = (row.dataset.text + ' ' + row.innerText).toLowerCase();
+
+        const matchesStatus = !status || rowStatus === status || (status === 'on track' && rowStatus === 'on track') || (status === 'reviewed / closed' && rowStatus === 'reviewed / closed');
+        const matchesOwner = !owner || rowOwner.includes(owner);
+        const matchesSearch = !search || rowText.includes(search);
+
+        row.classList.toggle('hidden', !(matchesStatus && matchesOwner && matchesSearch));
+      });
+    }
+  </script>
+</body>
+</html>
