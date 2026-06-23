@@ -1,0 +1,558 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>PRM-160 Skimmer Dashboard</title>
+  <style>
+    :root {
+      --bg: #f6f8fb;
+      --panel: #ffffff;
+      --text: #172033;
+      --muted: #667085;
+      --line: #e4e7ec;
+      --green: #12b76a;
+      --green-bg: #ecfdf3;
+      --yellow: #f79009;
+      --yellow-bg: #fffaeb;
+      --red: #f04438;
+      --red-bg: #fef3f2;
+      --gray: #98a2b3;
+      --gray-bg: #f2f4f7;
+      --blue: #2e90fa;
+      --blue-bg: #eff8ff;
+      --shadow: 0 10px 25px rgba(16, 24, 40, 0.08);
+      --radius: 18px;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    header {
+      background: linear-gradient(135deg, #172033 0%, #344054 100%);
+      color: #fff;
+      padding: 34px 32px 28px;
+    }
+
+    .header-inner {
+      max-width: 1240px;
+      margin: 0 auto;
+    }
+
+    .eyebrow {
+      font-size: 13px;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: #d0d5dd;
+      margin-bottom: 8px;
+      font-weight: 700;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(28px, 4vw, 44px);
+      line-height: 1.05;
+    }
+
+    .subtitle {
+      max-width: 900px;
+      margin-top: 12px;
+      color: #eaecf0;
+      font-size: 16px;
+      line-height: 1.55;
+    }
+
+    main {
+      max-width: 1240px;
+      margin: -18px auto 48px;
+      padding: 0 20px;
+    }
+
+    .top-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 16px;
+      margin-bottom: 18px;
+    }
+
+    .metric-card, .panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    .metric-card {
+      padding: 18px;
+      min-height: 140px;
+    }
+
+    .metric-label {
+      font-size: 13px;
+      color: var(--muted);
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+      margin-bottom: 10px;
+    }
+
+    .metric-value {
+      font-size: 26px;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    .metric-note {
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.45;
+    }
+
+    .dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      display: inline-block;
+      flex: 0 0 auto;
+    }
+    .dot.green { background: var(--green); }
+    .dot.yellow { background: var(--yellow); }
+    .dot.red { background: var(--red); }
+    .dot.gray { background: var(--gray); }
+
+    .panel { padding: 20px; margin-bottom: 18px; }
+    .panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    h2 { margin: 0; font-size: 20px; }
+    .section-note { margin: 6px 0 0; color: var(--muted); font-size: 14px; }
+
+    .controls {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    select, input[type="search"] {
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 10px 12px;
+      background: #fff;
+      color: var(--text);
+      font-size: 14px;
+      min-width: 180px;
+    }
+
+    .status-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .status-card {
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 16px;
+      background: #fff;
+      cursor: pointer;
+      transition: transform .16s ease, border-color .16s ease, box-shadow .16s ease;
+    }
+    .status-card:hover { transform: translateY(-2px); box-shadow: 0 10px 18px rgba(16, 24, 40, .07); }
+    .status-card.active { border-color: var(--blue); box-shadow: 0 0 0 3px var(--blue-bg); }
+    .status-title { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 8px; }
+    .status-title strong { font-size: 16px; }
+    .status-desc { color: var(--muted); font-size: 13px; line-height: 1.45; }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 9px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+    .pill.green { color: #027a48; background: var(--green-bg); }
+    .pill.yellow { color: #b54708; background: var(--yellow-bg); }
+    .pill.red { color: #b42318; background: var(--red-bg); }
+    .pill.gray { color: #344054; background: var(--gray-bg); }
+    .pill.blue { color: #175cd3; background: var(--blue-bg); }
+
+    table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: #fff;
+    }
+    th, td {
+      text-align: left;
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--line);
+      vertical-align: top;
+      font-size: 14px;
+    }
+    th {
+      background: #f9fafb;
+      color: #344054;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+    }
+    tr:last-child td { border-bottom: 0; }
+    tbody tr:hover { background: #fcfcfd; }
+
+    .owners {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .two-col {
+      display: grid;
+      grid-template-columns: 1.15fr .85fr;
+      gap: 18px;
+    }
+
+    .timeline {
+      border-left: 3px solid var(--line);
+      margin-left: 10px;
+      padding-left: 18px;
+    }
+    .timeline-item {
+      position: relative;
+      margin-bottom: 18px;
+    }
+    .timeline-item::before {
+      content: "";
+      position: absolute;
+      left: -27px;
+      top: 4px;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: var(--blue);
+      border: 3px solid #fff;
+      box-shadow: 0 0 0 1px var(--line);
+    }
+    .timeline-title { font-weight: 800; margin-bottom: 4px; }
+    .timeline-meta { color: var(--muted); font-size: 13px; margin-bottom: 6px; }
+    .timeline-body { color: #344054; font-size: 14px; line-height: 1.45; }
+
+    .decision-list, .source-list {
+      display: grid;
+      gap: 10px;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+    .decision-list li, .source-list li {
+      background: #f9fafb;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 12px;
+      font-size: 14px;
+      line-height: 1.4;
+    }
+    .source-list a { color: #175cd3; text-decoration: none; font-weight: 700; }
+    .source-list a:hover { text-decoration: underline; }
+
+    .hidden { display: none !important; }
+
+    .footer-note {
+      color: var(--muted);
+      font-size: 12px;
+      text-align: center;
+      margin-top: 24px;
+    }
+
+    @media (max-width: 980px) {
+      .top-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .status-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .two-col { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 640px) {
+      header { padding: 28px 20px; }
+      .top-grid, .status-grid { grid-template-columns: 1fr; }
+      .panel-header { flex-direction: column; }
+      select, input[type="search"] { width: 100%; min-width: 0; }
+      th:nth-child(3), td:nth-child(3) { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="header-inner">
+      <div class="eyebrow">PRM-160 Daily Skimmer Dashboard</div>
+      <h1>GS1 DataMatrix Functionality – Scan & Pay (R1)</h1>
+      <div class="subtitle">Baseline: June 17 solution design review plus current project Slack/Jira/Confluence signals. Dashboard generated from the latest skim output on June 23, 2026.</div>
+    </div>
+  </header>
+
+  <main>
+    <section class="top-grid" aria-label="Executive metrics">
+      <div class="metric-card">
+        <div class="metric-label">Overall</div>
+        <div class="metric-value"><span class="dot yellow"></span> At Risk</div>
+        <div class="metric-note">Core direction is clear, but R1 scope and device-impact decisions are still open.</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">Blocked Items</div>
+        <div class="metric-value"><span class="dot red"></span> 2</div>
+        <div class="metric-note">365Pay/beacon scope and inventory decrement behavior need explicit decisions.</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">At-Risk Items</div>
+        <div class="metric-value"><span class="dot yellow"></span> 4</div>
+        <div class="metric-note">HeatWave, Castles/Pico, API review, and stale SD wording require follow-up.</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">Last Material Signal</div>
+        <div class="metric-value"><span class="dot blue"></span> Jun 23</div>
+        <div class="metric-note">Chetan posted three active follow-ups in the project Slack channel.</div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-header">
+        <div>
+          <h2>Stoplight Summary</h2>
+          <p class="section-note">Click a card to filter the action queue by status.</p>
+        </div>
+        <div class="controls">
+          <button class="pill blue" type="button" onclick="resetFilters()">Reset filters</button>
+        </div>
+      </div>
+      <div class="status-grid" id="statusCards">
+        <div class="status-card" data-filter="Blocked" onclick="setStatusFilter('Blocked', this)">
+          <div class="status-title"><strong>Blocked</strong><span class="pill red">2</span></div>
+          <div class="status-desc">Decision required before implementation can safely proceed.</div>
+        </div>
+        <div class="status-card" data-filter="At Risk" onclick="setStatusFilter('At Risk', this)">
+          <div class="status-title"><strong>At Risk</strong><span class="pill yellow">4</span></div>
+          <div class="status-desc">Needs active follow-up to avoid release or design churn.</div>
+        </div>
+        <div class="status-card" data-filter="On Track" onclick="setStatusFilter('On Track', this)">
+          <div class="status-title"><strong>On Track / Resolved</strong><span class="pill green">4</span></div>
+          <div class="status-desc">Direction is clear; monitor for regression only.</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-header">
+        <div>
+          <h2>Current Action Queue</h2>
+          <p class="section-note">Use filters to focus by stoplight or owner.</p>
+        </div>
+        <div class="controls">
+          <input id="searchBox" type="search" placeholder="Search item, note, owner..." oninput="applyFilters()" />
+          <select id="statusFilter" onchange="applyFilters()">
+            <option value="">All statuses</option>
+            <option value="Blocked">Blocked</option>
+            <option value="At Risk">At Risk</option>
+            <option value="On Track">On Track</option>
+            <option value="Future Round">Future Round</option>
+          </select>
+          <select id="ownerFilter" onchange="applyFilters()">
+            <option value="">All owners</option>
+            <option value="Jamie">Jamie</option>
+            <option value="Michael">Michael</option>
+            <option value="William">William</option>
+            <option value="Matt">Matt</option>
+            <option value="Benjamin">Benjamin</option>
+            <option value="Chetan">Chetan</option>
+            <option value="Stephen">Stephen</option>
+          </select>
+        </div>
+      </div>
+
+      <table id="actionTable">
+        <thead>
+          <tr>
+            <th>Status</th>
+            <th>Open Item</th>
+            <th>Why It Matters</th>
+            <th>Owner / Next Move</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr data-status="Blocked" data-owner="Michael William" data-text="365Pay beacon scope products scanned pay app">
+            <td><span class="pill red">Blocked</span></td>
+            <td><strong>365Pay / Beacon R1 scope</strong><br>Confirm whether Pay App / beacons are out of scope for R1.</td>
+            <td>Enterprise customers use beacons; if app support is excluded, scanning flow needs a clear answer.</td>
+            <td><div class="owners"><span class="pill blue">Michael</span><span class="pill blue">William</span></div></td>
+          </tr>
+          <tr data-status="Blocked" data-owner="William Jamie" data-text="inventory decrement repeated scan negative inventory expired recalled">
+            <td><span class="pill red">Blocked</span></td>
+            <td><strong>Inventory decrement decision</strong><br>Decide auto-decrement vs notification/reporting vs configurable setting.</td>
+            <td>Repeated scans could drive negative/inaccurate inventory if the product is not actually discarded.</td>
+            <td><div class="owners"><span class="pill blue">William</span><span class="pill blue">Jamie</span></div></td>
+          </tr>
+          <tr data-status="At Risk" data-owner="Michael Matt" data-text="HeatWave parsing Python library epic kiosk scanner support">
+            <td><span class="pill yellow">At Risk</span></td>
+            <td><strong>HeatWave GS1 parsing epic</strong><br>Create the parsing-library epic for HeatWave / kiosk-side support.</td>
+            <td>Device-side parsing is the agreed path, but HeatWave lacks a ready Python-compatible library.</td>
+            <td><div class="owners"><span class="pill blue">Michael</span><span class="pill blue">Matt</span></div></td>
+          </tr>
+          <tr data-status="At Risk" data-owner="Benjamin" data-text="Castles Pico scanner GS1 support global market blocker">
+            <td><span class="pill yellow">At Risk</span></td>
+            <td><strong>Castles / Pico GS1 support</strong><br>Confirm whether Pico can scan/return GS1 data or needs Castles support.</td>
+            <td>Could block Mobile Market / Global Market rollout if data is not returned to the app.</td>
+            <td><div class="owners"><span class="pill blue">Benjamin</span></div></td>
+          </tr>
+          <tr data-status="At Risk" data-owner="Chetan Stephen" data-text="API schema review recall data contracts Stephen">
+            <td><span class="pill yellow">At Risk</span></td>
+            <td><strong>API / schema contract review</strong><br>Chetan to ping Stephen with recall API/schema cards for review.</td>
+            <td>Management APIs and recall schemas need API review before downstream implementation locks in.</td>
+            <td><div class="owners"><span class="pill blue">Chetan</span><span class="pill blue">Stephen</span></div></td>
+          </tr>
+          <tr data-status="At Risk" data-owner="Jamie Chetan" data-text="solution design stale normalization wording update baseline decisions">
+            <td><span class="pill yellow">At Risk</span></td>
+            <td><strong>Update solution design page</strong><br>Align SD wording to June 17 decisions and remove stale normalization language.</td>
+            <td>Current design text still contains older normalization and inventory assumptions that conflict with meeting decisions.</td>
+            <td><div class="owners"><span class="pill blue">Jamie</span><span class="pill blue">Chetan</span></div></td>
+          </tr>
+          <tr data-status="On Track" data-owner="Chetan ADM" data-text="ADM recall management UI records mapping offline sync">
+            <td><span class="pill green">On Track</span></td>
+            <td><strong>ADM recall management</strong><br>Recall records and recall-product mappings remain in R1 scope.</td>
+            <td>Core approach is agreed: ADM UI/backend with offline-capable device handling.</td>
+            <td><div class="owners"><span class="pill blue">Chetan</span><span class="pill blue">ADM</span></div></td>
+          </tr>
+          <tr data-status="On Track" data-owner="Team" data-text="GTIN normalization resolved no ADM normalize leading zeros operator entry">
+            <td><span class="pill green">Resolved</span></td>
+            <td><strong>GTIN normalization direction</strong><br>No ADM normalization; consume operator-entered package code.</td>
+            <td>Team aligned to avoid converting existing scan codes and preserve current behavior.</td>
+            <td><div class="owners"><span class="pill blue">Team Decision</span></div></td>
+          </tr>
+          <tr data-status="On Track" data-owner="Team" data-text="location toggle expiry recall workflow scanning remains enabled">
+            <td><span class="pill green">Resolved</span></td>
+            <td><strong>Location toggle behavior</strong><br>Toggle controls expiry/recall workflow only; scanning remains active.</td>
+            <td>Prevents accidental blocking of normal GS1 scanning when management workflow is disabled.</td>
+            <td><div class="owners"><span class="pill blue">Team Decision</span></div></td>
+          </tr>
+          <tr data-status="Future Round" data-owner="William Stephen" data-text="bulk recall upload Excel API multi org regional recalls">
+            <td><span class="pill gray">Future Round</span></td>
+            <td><strong>Bulk recall upload</strong><br>Evaluate Excel/API/super-page path for multi-org regional recalls.</td>
+            <td>Not required to start R1, but likely needed soon for enterprise scale.</td>
+            <td><div class="owners"><span class="pill blue">William</span><span class="pill blue">Stephen</span></div></td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="two-col">
+      <div class="panel">
+        <div class="panel-header">
+          <div>
+            <h2>Material Change Log</h2>
+            <p class="section-note">Latest skim signals only.</p>
+          </div>
+        </div>
+        <div class="timeline">
+          <div class="timeline-item">
+            <div class="timeline-title">Chetan posted active follow-ups in the project Slack channel</div>
+            <div class="timeline-meta">2026-06-23 01:40 CDT · Slack #prm-160-gs1-datamatrix-scan-pay</div>
+            <div class="timeline-body">Called out three decision/action areas: 365Pay scope, inventory decrement / negative inventory prevention, and the HeatWave parsing epic.</div>
+          </div>
+          <div class="timeline-item">
+            <div class="timeline-title">Baseline corrected to June 17 solution design review</div>
+            <div class="timeline-meta">2026-06-17 meeting transcript + notes</div>
+            <div class="timeline-body">Best-before out of R1, no ADM normalization, recall management in ADM, location toggle controls only expiry/recall workflow.</div>
+          </div>
+          <div class="timeline-item">
+            <div class="timeline-title">Solution design page needs reconciliation</div>
+            <div class="timeline-meta">Current Confluence design page</div>
+            <div class="timeline-body">Design text still includes stale normalization/inventory assumptions that should be updated to match the meeting decisions.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-header">
+          <div>
+            <h2>Decision Log</h2>
+            <p class="section-note">Use this to distinguish decisions from open items.</p>
+          </div>
+        </div>
+        <ul class="decision-list">
+          <li><strong>Best-before dates:</strong> Out of R1; focus on GTIN, expiry, and lot/batch.</li>
+          <li><strong>ADM GTIN normalization:</strong> Do not normalize in ADM; operator-entered values should match package codes.</li>
+          <li><strong>Leading zeros:</strong> Treat according to matching behavior discussed in the spec; do not bulk-convert existing codes.</li>
+          <li><strong>Location toggle:</strong> Controls expiry/recall workflow only, not base GS1 scanning.</li>
+          <li><strong>Recall management:</strong> Lives in ADM with recall records and recall-product mappings.</li>
+          <li><strong>Offline support:</strong> Device-local storage and sync back to SOSDB remain the intended path.</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-header">
+        <div>
+          <h2>Source Links</h2>
+          <p class="section-note">Primary artifacts used by the skimmer.</p>
+        </div>
+      </div>
+      <ul class="source-list">
+        <li><a href="https://365retailmarkets.atlassian.net/browse/PRM-160" target="_blank" rel="noopener">Jira PRM-160</a> — initiative status and scope.</li>
+        <li><a href="https://365retailmarkets.atlassian.net/wiki/spaces/PS/pages/6746537995/Solution+Design+PRM-160+GS1+DataMatrix+Functionality+for+Scan+and+Pay+R1" target="_blank" rel="noopener">Solution Design: PRM-160 GS1 DataMatrix</a> — design baseline and open questions.</li>
+        <li><a href="https://365retailmarkets.slack.com/docs/T07PAS6KY/F0BC66UJM3P" target="_blank" rel="noopener">PRM-160 Project Canvas</a> — project hub and artifacts.</li>
+        <li><a href="https://365retailmarkets.slack.com/archives/C0BBTQNUMHD" target="_blank" rel="noopener">Slack Project Channel</a> — latest follow-ups and stakeholder coordination.</li>
+      </ul>
+    </section>
+
+    <div class="footer-note">Generated from the PRM-160 skimmer output. This dashboard is static HTML; use browser refresh after regenerating from a new skim.</div>
+  </main>
+
+  <script>
+    function setStatusFilter(status, card) {
+      document.getElementById('statusFilter').value = status;
+      document.querySelectorAll('.status-card').forEach(c => c.classList.remove('active'));
+      card.classList.add('active');
+      applyFilters();
+    }
+
+    function resetFilters() {
+      document.getElementById('statusFilter').value = '';
+      document.getElementById('ownerFilter').value = '';
+      document.getElementById('searchBox').value = '';
+      document.querySelectorAll('.status-card').forEach(c => c.classList.remove('active'));
+      applyFilters();
+    }
+
+    function applyFilters() {
+      const status = document.getElementById('statusFilter').value.toLowerCase();
+      const owner = document.getElementById('ownerFilter').value.toLowerCase();
+      const search = document.getElementById('searchBox').value.toLowerCase();
+      const rows = document.querySelectorAll('#actionTable tbody tr');
+
+      rows.forEach(row => {
+        const rowStatus = (row.dataset.status || '').toLowerCase();
+        const rowOwner = (row.dataset.owner || '').toLowerCase();
+        const rowText = (row.dataset.text + ' ' + row.innerText).toLowerCase();
+
+        const matchesStatus = !status || rowStatus === status || (status === 'on track' && rowStatus === 'on track');
+        const matchesOwner = !owner || rowOwner.includes(owner);
+        const matchesSearch = !search || rowText.includes(search);
+
+        row.classList.toggle('hidden', !(matchesStatus && matchesOwner && matchesSearch));
+      });
+    }
+  </script>
+</body>
+</html>
