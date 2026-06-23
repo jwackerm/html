@@ -1,1 +1,624 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>PRM-376 Skimmer Dashboard</title>
+  <style>
+    :root {
+      --bg: #f6f8fb;
+      --panel: #ffffff;
+      --text: #172033;
+      --muted: #667085;
+      --line: #e4e7ec;
+      --green: #12b76a;
+      --green-bg: #ecfdf3;
+      --yellow: #f79009;
+      --yellow-bg: #fffaeb;
+      --red: #f04438;
+      --red-bg: #fef3f2;
+      --gray: #98a2b3;
+      --gray-bg: #f2f4f7;
+      --blue: #2e90fa;
+      --blue-bg: #eff8ff;
+      --purple: #7a5af8;
+      --purple-bg: #f4f3ff;
+      --shadow: 0 10px 25px rgba(16, 24, 40, 0.08);
+      --radius: 18px;
+    }
 
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    header {
+      background: linear-gradient(135deg, #172033 0%, #344054 100%);
+      color: #fff;
+      padding: 34px 32px 28px;
+    }
+
+    .header-inner {
+      max-width: 1240px;
+      margin: 0 auto;
+    }
+
+    .eyebrow {
+      font-size: 13px;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: #d0d5dd;
+      margin-bottom: 8px;
+      font-weight: 700;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(28px, 4vw, 44px);
+      line-height: 1.05;
+    }
+
+    .subtitle {
+      max-width: 960px;
+      margin-top: 12px;
+      color: #eaecf0;
+      font-size: 16px;
+      line-height: 1.55;
+    }
+
+    main {
+      max-width: 1240px;
+      margin: -18px auto 48px;
+      padding: 0 20px;
+    }
+
+    .top-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 16px;
+      margin-bottom: 18px;
+    }
+
+    .metric-card, .panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    .metric-card {
+      padding: 18px;
+      min-height: 140px;
+    }
+
+    .metric-label {
+      font-size: 13px;
+      color: var(--muted);
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+      margin-bottom: 10px;
+    }
+
+    .metric-value {
+      font-size: 26px;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    .metric-note {
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.45;
+    }
+
+    .dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      display: inline-block;
+      flex: 0 0 auto;
+    }
+    .dot.green { background: var(--green); }
+    .dot.yellow { background: var(--yellow); }
+    .dot.red { background: var(--red); }
+    .dot.gray { background: var(--gray); }
+    .dot.blue { background: var(--blue); }
+    .dot.purple { background: var(--purple); }
+
+    .panel { padding: 20px; margin-bottom: 18px; }
+    .panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    h2 { margin: 0; font-size: 20px; }
+    .section-note { margin: 6px 0 0; color: var(--muted); font-size: 14px; }
+
+    .controls {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    select, input[type="search"] {
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 10px 12px;
+      background: #fff;
+      color: var(--text);
+      font-size: 14px;
+      min-width: 180px;
+    }
+
+    .status-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .status-card {
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 16px;
+      background: #fff;
+      cursor: pointer;
+      transition: transform .16s ease, border-color .16s ease, box-shadow .16s ease;
+    }
+    .status-card:hover { transform: translateY(-2px); box-shadow: 0 10px 18px rgba(16, 24, 40, .07); }
+    .status-card.active { border-color: var(--blue); box-shadow: 0 0 0 3px var(--blue-bg); }
+    .status-title { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 8px; }
+    .status-title strong { font-size: 16px; }
+    .status-desc { color: var(--muted); font-size: 13px; line-height: 1.45; }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 9px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+    .pill.green { color: #027a48; background: var(--green-bg); }
+    .pill.yellow { color: #b54708; background: var(--yellow-bg); }
+    .pill.red { color: #b42318; background: var(--red-bg); }
+    .pill.gray { color: #344054; background: var(--gray-bg); }
+    .pill.blue { color: #175cd3; background: var(--blue-bg); }
+    .pill.purple { color: #5925dc; background: var(--purple-bg); }
+
+    table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: #fff;
+    }
+    th, td {
+      text-align: left;
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--line);
+      vertical-align: top;
+      font-size: 14px;
+    }
+    th {
+      background: #f9fafb;
+      color: #344054;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+    }
+    tr:last-child td { border-bottom: 0; }
+    tbody tr:hover { background: #fcfcfd; }
+
+    .owners {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .two-col {
+      display: grid;
+      grid-template-columns: 1.15fr .85fr;
+      gap: 18px;
+    }
+
+    .timeline {
+      border-left: 3px solid var(--line);
+      margin-left: 10px;
+      padding-left: 18px;
+    }
+    .timeline-item {
+      position: relative;
+      margin-bottom: 18px;
+    }
+    .timeline-item::before {
+      content: "";
+      position: absolute;
+      left: -27px;
+      top: 4px;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: var(--blue);
+      border: 3px solid #fff;
+      box-shadow: 0 0 0 1px var(--line);
+    }
+    .timeline-item.red::before { background: var(--red); }
+    .timeline-item.yellow::before { background: var(--yellow); }
+    .timeline-item.green::before { background: var(--green); }
+    .timeline-title { font-weight: 800; margin-bottom: 4px; }
+    .timeline-meta { color: var(--muted); font-size: 13px; margin-bottom: 6px; }
+    .timeline-body { color: #344054; font-size: 14px; line-height: 1.45; }
+
+    .decision-list, .source-list {
+      display: grid;
+      gap: 10px;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+    .decision-list li, .source-list li {
+      background: #f9fafb;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 12px;
+      font-size: 14px;
+      line-height: 1.4;
+    }
+    .source-list a { color: #175cd3; text-decoration: none; font-weight: 700; }
+    .source-list a:hover { text-decoration: underline; }
+
+    .draft-box {
+      background: #f9fafb;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 14px;
+      color: #344054;
+      font-size: 14px;
+      line-height: 1.5;
+      margin-bottom: 12px;
+    }
+
+    .hidden { display: none !important; }
+
+    .footer-note {
+      color: var(--muted);
+      font-size: 12px;
+      text-align: center;
+      margin-top: 24px;
+    }
+
+    @media (max-width: 980px) {
+      .top-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .status-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .two-col { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 640px) {
+      header { padding: 28px 20px; }
+      .top-grid, .status-grid { grid-template-columns: 1fr; }
+      .panel-header { flex-direction: column; }
+      select, input[type="search"] { width: 100%; min-width: 0; }
+      th:nth-child(3), td:nth-child(3) { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="header-inner">
+      <div class="eyebrow">PRM-376 Daily Skimmer Dashboard</div>
+      <h1>ESL Full Integration</h1>
+      <div class="subtitle">Baseline Snapshot v1 compared against current Outlook, Calendar, Teams, and SharePoint signals. Dashboard generated from the June 23, 2026 evening skim. Slack and Jira outputs remain draft-only / recommendation-only unless approved.</div>
+    </div>
+  </header>
+
+  <main>
+    <section class="top-grid" aria-label="Executive metrics">
+      <div class="metric-card">
+        <div class="metric-label">Overall</div>
+        <div class="metric-value"><span class="dot yellow"></span> At Risk</div>
+        <div class="metric-note">Solution Design remains the controlling risk, with stronger execution signal from a dedicated review.</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">Open Decisions</div>
+        <div class="metric-value"><span class="dot red"></span> 4</div>
+        <div class="metric-note">Architecture finalization, ADM ownership, API dependency list, and release-date alignment need explicit answers.</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">At-Risk Items</div>
+        <div class="metric-value"><span class="dot yellow"></span> 5</div>
+        <div class="metric-note">Solution Design, API decomposition, ADM scope, QA ownership, and Ops readiness need active follow-up.</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">Last Material Signal</div>
+        <div class="metric-value"><span class="dot blue"></span> Jun 23</div>
+        <div class="metric-note">Weekly ESL Solution Design Review invite/agenda centered on Sunil's PRM-376 review.</div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-header">
+        <div>
+          <h2>Stoplight Summary</h2>
+          <p class="section-note">Click a card to filter the action queue by status.</p>
+        </div>
+        <div class="controls">
+          <button class="pill blue" type="button" onclick="resetFilters()">Reset filters</button>
+        </div>
+      </div>
+      <div class="status-grid" id="statusCards">
+        <div class="status-card" data-filter="Needs Decision" onclick="setStatusFilter('Needs Decision', this)">
+          <div class="status-title"><strong>Needs Decision</strong><span class="pill red">4</span></div>
+          <div class="status-desc">Decision or owner confirmation required before the plan is reliable.</div>
+        </div>
+        <div class="status-card" data-filter="At Risk" onclick="setStatusFilter('At Risk', this)">
+          <div class="status-title"><strong>At Risk</strong><span class="pill yellow">5</span></div>
+          <div class="status-desc">Needs active follow-up to avoid design, scope, or release churn.</div>
+        </div>
+        <div class="status-card" data-filter="Positive Signal" onclick="setStatusFilter('Positive Signal', this)">
+          <div class="status-title"><strong>Positive Signal</strong><span class="pill green">2</span></div>
+          <div class="status-desc">Evidence of motion, but not enough yet to close risk.</div>
+        </div>
+        <div class="status-card" data-filter="Monitor" onclick="setStatusFilter('Monitor', this)">
+          <div class="status-title"><strong>Monitor</strong><span class="pill gray">2</span></div>
+          <div class="status-desc">Stable from baseline unless new evidence appears.</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-header">
+        <div>
+          <h2>Current Action Queue</h2>
+          <p class="section-note">Use filters to focus by stoplight or owner.</p>
+        </div>
+        <div class="controls">
+          <input id="searchBox" type="search" placeholder="Search item, note, owner..." oninput="applyFilters()" />
+          <select id="statusFilter" onchange="applyFilters()">
+            <option value="">All statuses</option>
+            <option value="Needs Decision">Needs Decision</option>
+            <option value="At Risk">At Risk</option>
+            <option value="Positive Signal">Positive Signal</option>
+            <option value="Monitor">Monitor</option>
+          </select>
+          <select id="ownerFilter" onchange="applyFilters()">
+            <option value="">All owners</option>
+            <option value="Jamie">Jamie</option>
+            <option value="Sunil">Sunil</option>
+            <option value="API">API</option>
+            <option value="ADM">ADM</option>
+            <option value="Chetan">Chetan</option>
+            <option value="Ops">Ops</option>
+            <option value="QA">QA</option>
+            <option value="Michael">Michael</option>
+          </select>
+        </div>
+      </div>
+
+      <table id="actionTable">
+        <thead>
+          <tr>
+            <th>Status</th>
+            <th>Open Item</th>
+            <th>Why It Matters</th>
+            <th>Owner / Next Move</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr data-status="Positive Signal" data-owner="Sunil Jamie API" data-text="solution design review Sunil architecture Tronitag Cloud 365 Platform API June 24">
+            <td><span class="pill green">Positive Signal</span></td>
+            <td><strong>PRM-376 ESL Solution Design Review</strong><br>Dedicated review is scheduled for June 24 with Sunil.</td>
+            <td>Creates a clear forum to lock architecture, scope boundaries, and follow-up Jira actions.</td>
+            <td><div class="owners"><span class="pill blue">Sunil</span><span class="pill blue">Jamie</span><span class="pill blue">API</span></div></td>
+          </tr>
+          <tr data-status="Needs Decision" data-owner="Sunil API Jamie" data-text="architecture final decision Tronitag Cloud 365 Platform API integration">
+            <td><span class="pill red">Needs Decision</span></td>
+            <td><strong>Final architecture direction</strong><br>Confirm TroniTag Cloud + direct 365 Platform API integration as the approved path.</td>
+            <td>Design appears to be converging, but implementation should not treat it as final until explicitly confirmed.</td>
+            <td><div class="owners"><span class="pill blue">Sunil</span><span class="pill blue">API</span><span class="pill blue">Jamie</span></div></td>
+          </tr>
+          <tr data-status="At Risk" data-owner="API Jamie" data-text="API-1482 API-1484 official dependencies location configuration endpoint platform API">
+            <td><span class="pill yellow">At Risk</span></td>
+            <td><strong>API dependency expansion</strong><br>Validate whether API-1482 and API-1484 are official PRM-376 dependencies.</td>
+            <td>New API references suggest implementation decomposition may have moved beyond the original watched Jira list.</td>
+            <td><div class="owners"><span class="pill blue">API</span><span class="pill blue">Jamie</span></div></td>
+          </tr>
+          <tr data-status="Needs Decision" data-owner="ADM Chetan Jamie Sunil" data-text="ADM-3947 ESL tag product storage not needed in ADM scope ownership">
+            <td><span class="pill red">Needs Decision</span></td>
+            <td><strong>ADM-3947 scope / ownership</strong><br>Clarify whether ESL tag-to-product storage is out of ADM or only a specific ADM approach is not needed.</td>
+            <td>Could materially change ADM scope boundaries and downstream Jira ownership.</td>
+            <td><div class="owners"><span class="pill blue">ADM</span><span class="pill blue">Chetan</span><span class="pill blue">Jamie</span></div></td>
+          </tr>
+          <tr data-status="At Risk" data-owner="QA Jamie API ADM Ops" data-text="QA ownership API ADM 365Ops Ops readiness unassigned TBD">
+            <td><span class="pill yellow">At Risk</span></td>
+            <td><strong>QA ownership still not explicit</strong><br>Assign QA owners for API, ADM, 365Ops, and Ops readiness.</td>
+            <td>Testing accountability remains a baseline gap and will become more urgent once design is approved.</td>
+            <td><div class="owners"><span class="pill blue">QA</span><span class="pill blue">Jamie</span></div></td>
+          </tr>
+          <tr data-status="At Risk" data-owner="Ops Scott Jamie Michael" data-text="Ops readiness timing hardware procurement Tronitag environment access point static IP hub PCV">
+            <td><span class="pill yellow">At Risk</span></td>
+            <td><strong>Ops / hardware readiness path</strong><br>Confirm test tags, access point, PC/hub setup, static IP assumptions, and Ops readiness timing.</td>
+            <td>Hardware/vendor readiness may be needed before testing, not only before release.</td>
+            <td><div class="owners"><span class="pill blue">Ops</span><span class="pill blue">Michael</span><span class="pill blue">Jamie</span></div></td>
+          </tr>
+          <tr data-status="Needs Decision" data-owner="Jamie API ADM PMO" data-text="release alignment July API ADM August PRM 2026-07-16 2026-08-31">
+            <td><span class="pill red">Needs Decision</span></td>
+            <td><strong>Release date alignment</strong><br>Confirm why PRM-376 targets 2026-08-31 while active API/ADM release drivers point to 2026-07-16.</td>
+            <td>Date mismatch remains the core planning question for PMO and readiness sequencing.</td>
+            <td><div class="owners"><span class="pill blue">Jamie</span><span class="pill blue">PMO</span></div></td>
+          </tr>
+          <tr data-status="Needs Decision" data-owner="Jamie KIO CV" data-text="KIO-1289 CV-1108 phase 2 reference launch critical scope">
+            <td><span class="pill red">Needs Decision</span></td>
+            <td><strong>KIO / CV launch-critical scope</strong><br>Confirm whether KIO-1289 and CV-1108 are Phase 2/reference or required for PRM launch.</td>
+            <td>Launch scope cannot be baselined until kiosk/CV dependency status is explicit.</td>
+            <td><div class="owners"><span class="pill blue">Jamie</span><span class="pill blue">KIO</span><span class="pill blue">CV</span></div></td>
+          </tr>
+          <tr data-status="Monitor" data-owner="Jamie" data-text="PRM-376 due date 2026-08-31 no change baseline">
+            <td><span class="pill gray">Monitor</span></td>
+            <td><strong>PRM due date</strong><br>No confirmed change from 2026-08-31.</td>
+            <td>Keep monitoring for date-shift requests or Jira version changes once live Jira lookup is available.</td>
+            <td><div class="owners"><span class="pill blue">Jamie</span></div></td>
+          </tr>
+          <tr data-status="Positive Signal" data-owner="Jamie Sunil" data-text="weekly project solution review meeting agenda updated weekly">
+            <td><span class="pill green">Positive Signal</span></td>
+            <td><strong>Weekly review cadence</strong><br>Meeting agenda says updates will be refreshed weekly.</td>
+            <td>Provides recurring venue to keep design decisions, risks, and owner gaps moving.</td>
+            <td><div class="owners"><span class="pill blue">Jamie</span><span class="pill blue">Sunil</span></div></td>
+          </tr>
+          <tr data-status="Monitor" data-owner="Team" data-text="official Slack channel confirmed project setup no change">
+            <td><span class="pill gray">Monitor</span></td>
+            <td><strong>Project setup</strong><br>Official Slack channel remains confirmed; no setup change found.</td>
+            <td>Stable project routing; continue draft-only Slack output unless posting is approved.</td>
+            <td><div class="owners"><span class="pill blue">Team</span></div></td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="two-col">
+      <div class="panel">
+        <div class="panel-header">
+          <div>
+            <h2>Material Change Log</h2>
+            <p class="section-note">Latest material signals from the skim.</p>
+          </div>
+        </div>
+        <div class="timeline">
+          <div class="timeline-item green">
+            <div class="timeline-title">Dedicated ESL Solution Design Review confirmed</div>
+            <div class="timeline-meta">2026-06-23 / scheduled for 2026-06-24 09:00 CT · Outlook Calendar</div>
+            <div class="timeline-body">Agenda centers on PRM-376 ESL Solution Design review by Sunil Paliwal. This is the strongest new execution signal since the baseline.</div>
+          </div>
+          <div class="timeline-item yellow">
+            <div class="timeline-title">Design appears to be converging around TroniTag Cloud + 365 Platform API</div>
+            <div class="timeline-meta">2026-06-17 to 2026-06-18 · prior skim / email signal</div>
+            <div class="timeline-body">Treat as likely direction, not a final decision, until the June 24 review produces explicit confirmation and Jira updates.</div>
+          </div>
+          <div class="timeline-item yellow">
+            <div class="timeline-title">API implementation decomposition may have expanded</div>
+            <div class="timeline-meta">2026-06-17 · Jira notification email</div>
+            <div class="timeline-body">API-1482 and API-1484 surfaced in ESL-related Jira notifications and should be added to the watch list until confirmed.</div>
+          </div>
+          <div class="timeline-item red">
+            <div class="timeline-title">ADM-3947 may alter ADM scope boundary</div>
+            <div class="timeline-meta">2026-06-12 · Jira mention email</div>
+            <div class="timeline-body">Comment signal suggests ESL tag-to-product storage may not be needed in ADM; clarify whether this removes ADM scope or reroutes ownership.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-header">
+          <div>
+            <h2>Decision Log</h2>
+            <p class="section-note">Separate confirmed decisions from open items.</p>
+          </div>
+        </div>
+        <ul class="decision-list">
+          <li><strong>Official Slack channel:</strong> Decided; use #prm-376-esl-electronic-shelf-levels-full-integration.</li>
+          <li><strong>Overall status:</strong> Remains At Risk until Solution Design, QA, Ops readiness, and date alignment are clarified.</li>
+          <li><strong>Architecture:</strong> Not yet confirmed as final; likely direction is TroniTag Cloud + 365 Platform API.</li>
+          <li><strong>Phase 1 vs Phase 2:</strong> Still open for KIO-1289 and CV-1108.</li>
+          <li><strong>Release date basis:</strong> Still open; July API/ADM release alignment vs August PRM due date needs a clear rationale.</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="two-col">
+      <div class="panel">
+        <div class="panel-header">
+          <div>
+            <h2>Draft Slack Update</h2>
+            <p class="section-note">Draft only; not posted.</p>
+          </div>
+        </div>
+        <div class="draft-box">
+          PRM-376 ESL skim update: Status remains <strong>At Risk</strong>, primarily due to Solution Design still being the controlling dependency. Positive movement: a dedicated <strong>PRM-376 ESL Solution Design Review by Sunil</strong> is scheduled for June 24, which should help lock architecture/scope. Watch items for that review: confirm TroniTag Cloud + 365 Platform API direction, validate whether API-1482/API-1484 are now official dependencies, clarify ADM-3947 scope/ownership, and confirm QA + Ops readiness owners/timing. No Jira or Slack updates posted from this skim.
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-header">
+          <div>
+            <h2>Draft Jira Updates</h2>
+            <p class="section-note">Recommendation only; not written to Jira.</p>
+          </div>
+        </div>
+        <div class="draft-box">
+          <strong>PRM-376 comment draft:</strong><br>
+          Daily skim note: Status remains At Risk. New positive signal: a dedicated PRM-376 ESL Solution Design Review is scheduled for June 24 with Sunil Paliwal. Follow-ups to confirm from the review: final architecture decision, whether API-1482/API-1484 are official dependencies, whether ADM-3947 changes ADM scope, QA owner assignment, Ops readiness timing, and whether the 2026-08-31 PRM date intentionally extends beyond the July API/ADM release alignment.
+        </div>
+        <div class="draft-box">
+          <strong>Watch-list recommendation:</strong><br>
+          Add API-1482, API-1484, and ADM-3947 to the PRM-376 skim/watch list until confirmed as unrelated or formally linked.
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-header">
+        <div>
+          <h2>Sources and Availability</h2>
+          <p class="section-note">Primary systems and artifacts used by this skim.</p>
+        </div>
+      </div>
+      <ul class="source-list">
+        <li><a href="https://365retailmarkets.atlassian.net/browse/PRM-376" target="_blank" rel="noopener">Jira PRM-376</a> — initiative status and parent ticket; direct Jira lookup was unavailable in this run.</li>
+        <li><a href="https://365retailmarkets.slack.com/archives/prm-376-esl-electronic-shelf-levels-full-integration" target="_blank" rel="noopener">Slack Project Channel</a> — official team channel; direct Slack lookup was unavailable in this run.</li>
+        <li><strong>Outlook Calendar:</strong> confirmed the June 24 Weekly Project and Solution Review Meeting for ESL.</li>
+        <li><strong>Outlook Email:</strong> provided invite details, prior skimmer update signals, Jira weekly update, and ADM-3947 mention.</li>
+        <li><strong>Teams / SharePoint indexed search:</strong> checked for related mentions and recent artifacts; no stronger direct source than the meeting/email signals was found.</li>
+      </ul>
+    </section>
+
+    <div class="footer-note">Generated from the PRM-376 skimmer output. This dashboard is static HTML; refresh/regenerate after each new skim.</div>
+  </main>
+
+  <script>
+    function setStatusFilter(status, card) {
+      document.getElementById('statusFilter').value = status;
+      document.querySelectorAll('.status-card').forEach(c => c.classList.remove('active'));
+      card.classList.add('active');
+      applyFilters();
+    }
+
+    function resetFilters() {
+      document.getElementById('statusFilter').value = '';
+      document.getElementById('ownerFilter').value = '';
+      document.getElementById('searchBox').value = '';
+      document.querySelectorAll('.status-card').forEach(c => c.classList.remove('active'));
+      applyFilters();
+    }
+
+    function applyFilters() {
+      const status = document.getElementById('statusFilter').value.toLowerCase();
+      const owner = document.getElementById('ownerFilter').value.toLowerCase();
+      const search = document.getElementById('searchBox').value.toLowerCase();
+      const rows = document.querySelectorAll('#actionTable tbody tr');
+
+      rows.forEach(row => {
+        const rowStatus = (row.dataset.status || '').toLowerCase();
+        const rowOwner = (row.dataset.owner || '').toLowerCase();
+        const rowText = ((row.dataset.text || '') + ' ' + row.innerText).toLowerCase();
+
+        const matchesStatus = !status || rowStatus === status;
+        const matchesOwner = !owner || rowOwner.includes(owner);
+        const matchesSearch = !search || rowText.includes(search);
+
+        row.classList.toggle('hidden', !(matchesStatus && matchesOwner && matchesSearch));
+      });
+    }
+  </script>
+</body>
+</html>
