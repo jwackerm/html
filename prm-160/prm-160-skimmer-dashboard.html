@@ -1,558 +1,203 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>PRM-160 Skimmer Dashboard</title>
-  <style>
-    :root {
-      --bg: #f6f8fb;
-      --panel: #ffffff;
-      --text: #172033;
-      --muted: #667085;
-      --line: #e4e7ec;
-      --green: #12b76a;
-      --green-bg: #ecfdf3;
-      --yellow: #f79009;
-      --yellow-bg: #fffaeb;
-      --red: #f04438;
-      --red-bg: #fef3f2;
-      --gray: #98a2b3;
-      --gray-bg: #f2f4f7;
-      --blue: #2e90fa;
-      --blue-bg: #eff8ff;
-      --shadow: 0 10px 25px rgba(16, 24, 40, 0.08);
-      --radius: 18px;
-    }
-
-    * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      background: var(--bg);
-      color: var(--text);
-    }
-
-    header {
-      background: linear-gradient(135deg, #172033 0%, #344054 100%);
-      color: #fff;
-      padding: 34px 32px 28px;
-    }
-
-    .header-inner {
-      max-width: 1240px;
-      margin: 0 auto;
-    }
-
-    .eyebrow {
-      font-size: 13px;
-      letter-spacing: .08em;
-      text-transform: uppercase;
-      color: #d0d5dd;
-      margin-bottom: 8px;
-      font-weight: 700;
-    }
-
-    h1 {
-      margin: 0;
-      font-size: clamp(28px, 4vw, 44px);
-      line-height: 1.05;
-    }
-
-    .subtitle {
-      max-width: 900px;
-      margin-top: 12px;
-      color: #eaecf0;
-      font-size: 16px;
-      line-height: 1.55;
-    }
-
-    main {
-      max-width: 1240px;
-      margin: -18px auto 48px;
-      padding: 0 20px;
-    }
-
-    .top-grid {
-      display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
-      gap: 16px;
-      margin-bottom: 18px;
-    }
-
-    .metric-card, .panel {
-      background: var(--panel);
-      border: 1px solid var(--line);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow);
-    }
-
-    .metric-card {
-      padding: 18px;
-      min-height: 140px;
-    }
-
-    .metric-label {
-      font-size: 13px;
-      color: var(--muted);
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: .04em;
-      margin-bottom: 10px;
-    }
-
-    .metric-value {
-      font-size: 26px;
-      font-weight: 800;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      margin-bottom: 8px;
-    }
-
-    .metric-note {
-      font-size: 13px;
-      color: var(--muted);
-      line-height: 1.45;
-    }
-
-    .dot {
-      width: 12px;
-      height: 12px;
-      border-radius: 50%;
-      display: inline-block;
-      flex: 0 0 auto;
-    }
-    .dot.green { background: var(--green); }
-    .dot.yellow { background: var(--yellow); }
-    .dot.red { background: var(--red); }
-    .dot.gray { background: var(--gray); }
-
-    .panel { padding: 20px; margin-bottom: 18px; }
-    .panel-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      gap: 12px;
-      margin-bottom: 16px;
-    }
-    h2 { margin: 0; font-size: 20px; }
-    .section-note { margin: 6px 0 0; color: var(--muted); font-size: 14px; }
-
-    .controls {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-      align-items: center;
-    }
-    select, input[type="search"] {
-      border: 1px solid var(--line);
-      border-radius: 12px;
-      padding: 10px 12px;
-      background: #fff;
-      color: var(--text);
-      font-size: 14px;
-      min-width: 180px;
-    }
-
-    .status-grid {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 14px;
-    }
-
-    .status-card {
-      border: 1px solid var(--line);
-      border-radius: 16px;
-      padding: 16px;
-      background: #fff;
-      cursor: pointer;
-      transition: transform .16s ease, border-color .16s ease, box-shadow .16s ease;
-    }
-    .status-card:hover { transform: translateY(-2px); box-shadow: 0 10px 18px rgba(16, 24, 40, .07); }
-    .status-card.active { border-color: var(--blue); box-shadow: 0 0 0 3px var(--blue-bg); }
-    .status-title { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 8px; }
-    .status-title strong { font-size: 16px; }
-    .status-desc { color: var(--muted); font-size: 13px; line-height: 1.45; }
-
-    .pill {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 5px 9px;
-      border-radius: 999px;
-      font-size: 12px;
-      font-weight: 800;
-      white-space: nowrap;
-    }
-    .pill.green { color: #027a48; background: var(--green-bg); }
-    .pill.yellow { color: #b54708; background: var(--yellow-bg); }
-    .pill.red { color: #b42318; background: var(--red-bg); }
-    .pill.gray { color: #344054; background: var(--gray-bg); }
-    .pill.blue { color: #175cd3; background: var(--blue-bg); }
-
-    table {
-      width: 100%;
-      border-collapse: separate;
-      border-spacing: 0;
-      overflow: hidden;
-      border: 1px solid var(--line);
-      border-radius: 14px;
-      background: #fff;
-    }
-    th, td {
-      text-align: left;
-      padding: 12px 14px;
-      border-bottom: 1px solid var(--line);
-      vertical-align: top;
-      font-size: 14px;
-    }
-    th {
-      background: #f9fafb;
-      color: #344054;
-      font-size: 12px;
-      text-transform: uppercase;
-      letter-spacing: .04em;
-    }
-    tr:last-child td { border-bottom: 0; }
-    tbody tr:hover { background: #fcfcfd; }
-
-    .owners {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 6px;
-    }
-
-    .two-col {
-      display: grid;
-      grid-template-columns: 1.15fr .85fr;
-      gap: 18px;
-    }
-
-    .timeline {
-      border-left: 3px solid var(--line);
-      margin-left: 10px;
-      padding-left: 18px;
-    }
-    .timeline-item {
-      position: relative;
-      margin-bottom: 18px;
-    }
-    .timeline-item::before {
-      content: "";
-      position: absolute;
-      left: -27px;
-      top: 4px;
-      width: 14px;
-      height: 14px;
-      border-radius: 50%;
-      background: var(--blue);
-      border: 3px solid #fff;
-      box-shadow: 0 0 0 1px var(--line);
-    }
-    .timeline-title { font-weight: 800; margin-bottom: 4px; }
-    .timeline-meta { color: var(--muted); font-size: 13px; margin-bottom: 6px; }
-    .timeline-body { color: #344054; font-size: 14px; line-height: 1.45; }
-
-    .decision-list, .source-list {
-      display: grid;
-      gap: 10px;
-      margin: 0;
-      padding: 0;
-      list-style: none;
-    }
-    .decision-list li, .source-list li {
-      background: #f9fafb;
-      border: 1px solid var(--line);
-      border-radius: 12px;
-      padding: 12px;
-      font-size: 14px;
-      line-height: 1.4;
-    }
-    .source-list a { color: #175cd3; text-decoration: none; font-weight: 700; }
-    .source-list a:hover { text-decoration: underline; }
-
-    .hidden { display: none !important; }
-
-    .footer-note {
-      color: var(--muted);
-      font-size: 12px;
-      text-align: center;
-      margin-top: 24px;
-    }
-
-    @media (max-width: 980px) {
-      .top-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-      .status-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-      .two-col { grid-template-columns: 1fr; }
-    }
-    @media (max-width: 640px) {
-      header { padding: 28px 20px; }
-      .top-grid, .status-grid { grid-template-columns: 1fr; }
-      .panel-header { flex-direction: column; }
-      select, input[type="search"] { width: 100%; min-width: 0; }
-      th:nth-child(3), td:nth-child(3) { display: none; }
-    }
-  </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PRM-160 GS1 Datamatrix Dashboard</title>
+<style>
+:root{--bg:#f6f8fb;--panel:#fff;--ink:#17212b;--muted:#5f6b7a;--line:#dce3ec;--blue:#1668dc;--red:#b42318;--redbg:#fff1f0;--yellow:#946200;--yellowbg:#fff7db;--green:#067647;--greenbg:#e9f8ef;--shadow:0 10px 25px rgba(16,24,40,.08)}
+*{box-sizing:border-box} body{margin:0;font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--bg);color:var(--ink)}
+header{padding:30px clamp(18px,4vw,56px);background:linear-gradient(135deg,#0b1f3a,#174a7c 58%,#1f7a8c);color:#fff}
+.top{display:grid;grid-template-columns:1fr auto;gap:20px;align-items:start} h1{margin:0 0 8px;font-size:clamp(28px,5vw,48px);line-height:1.05} .sub{margin:0;color:rgba(255,255,255,.84);max-width:1000px}
+.status{display:inline-flex;align-items:center;gap:8px;padding:8px 12px;border-radius:999px;font-weight:800;border:1px solid rgba(255,255,255,.35);background:rgba(255,255,255,.14)}
+main{padding:24px clamp(18px,4vw,56px) 48px} .toolbar{display:flex;flex-wrap:wrap;gap:10px;margin:-44px 0 22px;position:relative;z-index:1}
+button,input{font:inherit} button{border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:12px;padding:10px 13px;cursor:pointer;box-shadow:0 2px 8px rgba(16,24,40,.04)} button.active{background:#0b5cab;color:#fff;border-color:#0b5cab}
+input{min-width:min(100%,320px);border:1px solid var(--line);border-radius:12px;padding:10px 12px;background:#fff}
+.grid{display:grid;gap:16px} .cards{grid-template-columns:repeat(3,minmax(0,1fr))} .card,section{background:var(--panel);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow)}
+.card{padding:18px} .card h3{margin:0 0 8px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.pill{display:inline-flex;border-radius:999px;padding:5px 9px;font-size:12px;font-weight:800} .red{background:var(--redbg);color:var(--red)} .yellow{background:var(--yellowbg);color:var(--yellow)} .green{background:var(--greenbg);color:var(--green)}
+.meta,.small{color:var(--muted);font-size:13px} section{margin-top:18px;overflow:hidden} section h2{margin:0;padding:18px 20px;border-bottom:1px solid var(--line);font-size:20px} .content{padding:18px 20px}
+table{width:100%;border-collapse:collapse} th,td{padding:12px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top} th{color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.04em}
+tr:last-child td{border-bottom:0} a{color:var(--blue);text-decoration:none} a:hover{text-decoration:underline}
+.item{border:1px solid var(--line);border-radius:14px;padding:13px;background:#fbfcfe} .item.hidden, tr.hidden{display:none} .item-top{display:flex;justify-content:space-between;gap:12px;margin-bottom:6px}
+.kv{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px} .kv div{border:1px solid var(--line);border-radius:14px;padding:12px;background:#fbfcfe}
+.copybox{background:#0b1220;color:#e7eef8;border-radius:14px;padding:14px;white-space:pre-wrap;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:13px;line-height:1.45}
+.footer{margin-top:22px;color:var(--muted);font-size:13px}
+@media (max-width:980px){.cards,.kv{grid-template-columns:1fr} .top{grid-template-columns:1fr} .toolbar{margin-top:-18px}}
+</style>
 </head>
 <body>
-  <header>
-    <div class="header-inner">
-      <div class="eyebrow">PRM-160 Daily Skimmer Dashboard</div>
-      <h1>GS1 DataMatrix Functionality – Scan & Pay (R1)</h1>
-      <div class="subtitle">Baseline: June 17 solution design review plus current project Slack/Jira/Confluence signals. Dashboard generated from the latest skim output on June 23, 2026.</div>
+<header>
+  <div class="top">
+    <div>
+      <h1>PRM-160 GS1 Datamatrix Scan&Pay</h1>
+      <p class="sub">Daily material-change skim across Jira, Confluence, Slack, SharePoint, Outlook, and Teams. Baseline is the June 17 solution-design recap and current project artifacts.</p>
     </div>
-  </header>
+    <div class="status">Status: 🟡 At Risk</div>
+  </div>
+</header>
 
-  <main>
-    <section class="top-grid" aria-label="Executive metrics">
-      <div class="metric-card">
-        <div class="metric-label">Overall</div>
-        <div class="metric-value"><span class="dot yellow"></span> At Risk</div>
-        <div class="metric-note">Core direction is clear, but R1 scope and device-impact decisions are still open.</div>
-      </div>
-      <div class="metric-card">
-        <div class="metric-label">Blocked Items</div>
-        <div class="metric-value"><span class="dot red"></span> 2</div>
-        <div class="metric-note">365Pay/beacon scope and inventory decrement behavior need explicit decisions.</div>
-      </div>
-      <div class="metric-card">
-        <div class="metric-label">At-Risk Items</div>
-        <div class="metric-value"><span class="dot yellow"></span> 4</div>
-        <div class="metric-note">HeatWave, Castles/Pico, API review, and stale SD wording require follow-up.</div>
-      </div>
-      <div class="metric-card">
-        <div class="metric-label">Last Material Signal</div>
-        <div class="metric-value"><span class="dot blue"></span> Jun 23</div>
-        <div class="metric-note">Chetan posted three active follow-ups in the project Slack channel.</div>
-      </div>
-    </section>
+<main>
+  <div class="toolbar">
+    <button class="active" data-filter="all">All</button>
+    <button data-filter="change">Changes</button>
+    <button data-filter="risk">Risks</button>
+    <button data-filter="decision">Decisions</button>
+    <input id="search" placeholder="Search dashboard...">
+  </div>
 
-    <section class="panel">
-      <div class="panel-header">
-        <div>
-          <h2>Stoplight Summary</h2>
-          <p class="section-note">Click a card to filter the action queue by status.</p>
-        </div>
-        <div class="controls">
-          <button class="pill blue" type="button" onclick="resetFilters()">Reset filters</button>
-        </div>
-      </div>
-      <div class="status-grid" id="statusCards">
-        <div class="status-card" data-filter="Blocked" onclick="setStatusFilter('Blocked', this)">
-          <div class="status-title"><strong>Blocked</strong><span class="pill red">2</span></div>
-          <div class="status-desc">Decision required before implementation can safely proceed.</div>
-        </div>
-        <div class="status-card" data-filter="At Risk" onclick="setStatusFilter('At Risk', this)">
-          <div class="status-title"><strong>At Risk</strong><span class="pill yellow">4</span></div>
-          <div class="status-desc">Needs active follow-up to avoid release or design churn.</div>
-        </div>
-        <div class="status-card" data-filter="On Track" onclick="setStatusFilter('On Track', this)">
-          <div class="status-title"><strong>On Track / Resolved</strong><span class="pill green">4</span></div>
-          <div class="status-desc">Direction is clear; monitor for regression only.</div>
-        </div>
-      </div>
-    </section>
+  <div class="grid cards">
+    <article class="card search-item" data-kind="summary"><h3>Overall<span class="pill red">At Risk</span></h3><p>PRM-160 is moving, but 365Pay scope, inventory decrement behavior, Castles support, and release sequencing remain open.</p></article>
+    <article class="card search-item" data-kind="summary"><h3>ADM<span class="pill yellow">Watch</span></h3><p>ADM-285 is Ready for Dev Review; ADM-60 remains in progress and recall/API work still needs closure.</p></article>
+    <article class="card search-item" data-kind="summary"><h3>Kiosk / V5<span class="pill red">At Risk</span></h3><p>KIO-1877 creates a new HeatWave parsing-library dependency; kiosk ROM/implementation work is still in motion.</p></article>
+    <article class="card search-item" data-kind="summary"><h3>Mobile Market<span class="pill red">At Risk</span></h3><p>MM-88 remains Intake Ready and Castles scanner compatibility is now a tracked risk.</p></article>
+    <article class="card search-item" data-kind="summary"><h3>Scope / Design<span class="pill yellow">Watch</span></h3><p>Solution design and June 17 recap define baseline scope, but follow-up questions were raised in Slack.</p></article>
+    <article class="card search-item" data-kind="summary"><h3>Operations<span class="pill yellow">Watch</span></h3><p>Scanner operational work exists, but documentation and enablement may need review after scope changes.</p></article>
+  </div>
 
-    <section class="panel">
-      <div class="panel-header">
-        <div>
-          <h2>Current Action Queue</h2>
-          <p class="section-note">Use filters to focus by stoplight or owner.</p>
-        </div>
-        <div class="controls">
-          <input id="searchBox" type="search" placeholder="Search item, note, owner..." oninput="applyFilters()" />
-          <select id="statusFilter" onchange="applyFilters()">
-            <option value="">All statuses</option>
-            <option value="Blocked">Blocked</option>
-            <option value="At Risk">At Risk</option>
-            <option value="On Track">On Track</option>
-            <option value="Future Round">Future Round</option>
-          </select>
-          <select id="ownerFilter" onchange="applyFilters()">
-            <option value="">All owners</option>
-            <option value="Jamie">Jamie</option>
-            <option value="Michael">Michael</option>
-            <option value="William">William</option>
-            <option value="Matt">Matt</option>
-            <option value="Benjamin">Benjamin</option>
-            <option value="Chetan">Chetan</option>
-            <option value="Stephen">Stephen</option>
-          </select>
-        </div>
-      </div>
+  <section>
+    <h2>Release Snapshot</h2>
+    <div class="content kv">
+      <div><strong>PRM-160</strong><br><span class="small">In Progress · Highest · Owner Jamie · Due 2026-08-27</span></div>
+      <div><strong>ADM</strong><br><span class="small">ADMv26.06.0 · 2026-07-16 · ADM-60 in progress</span></div>
+      <div><strong>Kiosk / V5</strong><br><span class="small">KIOv26.05.0 · 2026-08-27 · KIO-238 Intake Ready</span></div>
+      <div><strong>Mobile Market</strong><br><span class="small">MMv26.05.0 · 2026-08-27 · MM-88 Intake Ready</span></div>
+      <div><strong>Design</strong><br><span class="small">SD updated Jun 23; baseline adjusted to meeting recap</span></div>
+    </div>
+  </section>
 
-      <table id="actionTable">
-        <thead>
-          <tr>
-            <th>Status</th>
-            <th>Open Item</th>
-            <th>Why It Matters</th>
-            <th>Owner / Next Move</th>
-          </tr>
-        </thead>
+  <section>
+    <h2>Latest Material Changes</h2>
+    <div class="content">
+      <div class="item search-item" data-kind="change"><div class="item-top"><strong>Jun 24</strong><span class="pill yellow">CHANGE</span></div><div>MM-88 updated and remains Intake Ready for MMv26.05.0 / Aug 27.</div><div class="meta">Owner: Smita Kotecha · <a href="https://365retailmarkets.atlassian.net/browse/MM-88" target="_blank" rel="noopener">Open source</a></div></div>
+      <div class="item search-item" data-kind="change"><div class="item-top"><strong>Jun 24</strong><span class="pill yellow">CHANGE</span></div><div>ADM-285 moved to Ready for Dev Review for the GS1 Expiry &amp; Lot Management toggle.</div><div class="meta">Owner: Rashmi Chamakeri · <a href="https://365retailmarkets.atlassian.net/browse/ADM-285" target="_blank" rel="noopener">Open source</a></div></div>
+      <div class="item search-item" data-kind="change"><div class="item-top"><strong>Jun 23</strong><span class="pill yellow">CHANGE</span></div><div>KIO-1877 created for a dedicated HeatWave GS1 parsing library.</div><div class="meta">Owner: Pankaj Chobharkar · <a href="https://365retailmarkets.atlassian.net/browse/KIO-1877" target="_blank" rel="noopener">Open source</a></div></div>
+      <div class="item search-item" data-kind="risk"><div class="item-top"><strong>Jun 23</strong><span class="pill red">RISK</span></div><div>Slack follow-up highlighted 365Pay scope, inventory decrement, negative-inventory prevention, and HeatWave parsing ownership questions.</div><div class="meta">Owner: Chetan / William / Michael / Jamie · <a href="https://365retailmarkets.slack.com/archives/C0BBTQNUMHD" target="_blank" rel="noopener">Open source</a></div></div>
+      <div class="item search-item" data-kind="risk"><div class="item-top"><strong>Jun 23</strong><span class="pill red">RISK</span></div><div>Castles scanner support is now a tracked blocker via external ticket UC-15803.</div><div class="meta">Owner: Smita / Stephen / Castles · <a href="https://castlestech.atlassian.net/servicedesk/customer/portal/3/UC-15803" target="_blank" rel="noopener">Open source</a></div></div>
+      <div class="item search-item" data-kind="change"><div class="item-top"><strong>Jun 23</strong><span class="pill yellow">CHANGE</span></div><div>ADM-286 email alerts moved out of R1 / marked Won't Do.</div><div class="meta">Owner: Unassigned · <a href="https://365retailmarkets.atlassian.net/browse/ADM-286" target="_blank" rel="noopener">Open source</a></div></div>
+      <div class="item search-item" data-kind="change"><div class="item-top"><strong>Jun 23</strong><span class="pill yellow">CHANGE</span></div><div>ADM-2849 GTIN normalization story marked Abandoned / Won't Do.</div><div class="meta">Owner: Unassigned · <a href="https://365retailmarkets.atlassian.net/browse/ADM-2849" target="_blank" rel="noopener">Open source</a></div></div>
+      <div class="item search-item" data-kind="risk"><div class="item-top"><strong>Jun 22-24</strong><span class="pill red">RISK</span></div><div>Schema/API dates are tight or already past due across ADM-4074 child work.</div><div class="meta">Owner: PavanK · <a href="https://365retailmarkets.atlassian.net/browse/ADM-4074" target="_blank" rel="noopener">Open source</a></div></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Owner Action Queue</h2>
+    <div class="content">
+      <table>
+        <thead><tr><th>Owner</th><th>Priority</th><th>Due</th><th>Action</th><th>Link</th></tr></thead>
         <tbody>
-          <tr data-status="Blocked" data-owner="Michael William" data-text="365Pay beacon scope products scanned pay app">
-            <td><span class="pill red">Blocked</span></td>
-            <td><strong>365Pay / Beacon R1 scope</strong><br>Confirm whether Pay App / beacons are out of scope for R1.</td>
-            <td>Enterprise customers use beacons; if app support is excluded, scanning flow needs a clear answer.</td>
-            <td><div class="owners"><span class="pill blue">Michael</span><span class="pill blue">William</span></div></td>
-          </tr>
-          <tr data-status="Blocked" data-owner="William Jamie" data-text="inventory decrement repeated scan negative inventory expired recalled">
-            <td><span class="pill red">Blocked</span></td>
-            <td><strong>Inventory decrement decision</strong><br>Decide auto-decrement vs notification/reporting vs configurable setting.</td>
-            <td>Repeated scans could drive negative/inaccurate inventory if the product is not actually discarded.</td>
-            <td><div class="owners"><span class="pill blue">William</span><span class="pill blue">Jamie</span></div></td>
-          </tr>
-          <tr data-status="At Risk" data-owner="Michael Matt" data-text="HeatWave parsing Python library epic kiosk scanner support">
-            <td><span class="pill yellow">At Risk</span></td>
-            <td><strong>HeatWave GS1 parsing epic</strong><br>Create the parsing-library epic for HeatWave / kiosk-side support.</td>
-            <td>Device-side parsing is the agreed path, but HeatWave lacks a ready Python-compatible library.</td>
-            <td><div class="owners"><span class="pill blue">Michael</span><span class="pill blue">Matt</span></div></td>
-          </tr>
-          <tr data-status="At Risk" data-owner="Benjamin" data-text="Castles Pico scanner GS1 support global market blocker">
-            <td><span class="pill yellow">At Risk</span></td>
-            <td><strong>Castles / Pico GS1 support</strong><br>Confirm whether Pico can scan/return GS1 data or needs Castles support.</td>
-            <td>Could block Mobile Market / Global Market rollout if data is not returned to the app.</td>
-            <td><div class="owners"><span class="pill blue">Benjamin</span></div></td>
-          </tr>
-          <tr data-status="At Risk" data-owner="Chetan Stephen" data-text="API schema review recall data contracts Stephen">
-            <td><span class="pill yellow">At Risk</span></td>
-            <td><strong>API / schema contract review</strong><br>Chetan to ping Stephen with recall API/schema cards for review.</td>
-            <td>Management APIs and recall schemas need API review before downstream implementation locks in.</td>
-            <td><div class="owners"><span class="pill blue">Chetan</span><span class="pill blue">Stephen</span></div></td>
-          </tr>
-          <tr data-status="At Risk" data-owner="Jamie Chetan" data-text="solution design stale normalization wording update baseline decisions">
-            <td><span class="pill yellow">At Risk</span></td>
-            <td><strong>Update solution design page</strong><br>Align SD wording to June 17 decisions and remove stale normalization language.</td>
-            <td>Current design text still contains older normalization and inventory assumptions that conflict with meeting decisions.</td>
-            <td><div class="owners"><span class="pill blue">Jamie</span><span class="pill blue">Chetan</span></div></td>
-          </tr>
-          <tr data-status="On Track" data-owner="Chetan ADM" data-text="ADM recall management UI records mapping offline sync">
-            <td><span class="pill green">On Track</span></td>
-            <td><strong>ADM recall management</strong><br>Recall records and recall-product mappings remain in R1 scope.</td>
-            <td>Core approach is agreed: ADM UI/backend with offline-capable device handling.</td>
-            <td><div class="owners"><span class="pill blue">Chetan</span><span class="pill blue">ADM</span></div></td>
-          </tr>
-          <tr data-status="On Track" data-owner="Team" data-text="GTIN normalization resolved no ADM normalize leading zeros operator entry">
-            <td><span class="pill green">Resolved</span></td>
-            <td><strong>GTIN normalization direction</strong><br>No ADM normalization; consume operator-entered package code.</td>
-            <td>Team aligned to avoid converting existing scan codes and preserve current behavior.</td>
-            <td><div class="owners"><span class="pill blue">Team Decision</span></div></td>
-          </tr>
-          <tr data-status="On Track" data-owner="Team" data-text="location toggle expiry recall workflow scanning remains enabled">
-            <td><span class="pill green">Resolved</span></td>
-            <td><strong>Location toggle behavior</strong><br>Toggle controls expiry/recall workflow only; scanning remains active.</td>
-            <td>Prevents accidental blocking of normal GS1 scanning when management workflow is disabled.</td>
-            <td><div class="owners"><span class="pill blue">Team Decision</span></div></td>
-          </tr>
-          <tr data-status="Future Round" data-owner="William Stephen" data-text="bulk recall upload Excel API multi org regional recalls">
-            <td><span class="pill gray">Future Round</span></td>
-            <td><strong>Bulk recall upload</strong><br>Evaluate Excel/API/super-page path for multi-org regional recalls.</td>
-            <td>Not required to start R1, but likely needed soon for enterprise scale.</td>
-            <td><div class="owners"><span class="pill blue">William</span><span class="pill blue">Stephen</span></div></td>
-          </tr>
+          <tr class="search-item" data-kind="action"><td>Jamie Wackerman</td><td><span class="pill red">High</span></td><td>Today</td><td>Confirm R1 scope boundaries: 365Pay exclusion, email-alert phase, GTIN normalization ownership, and release sequencing.</td><td><a href="https://365retailmarkets.atlassian.net/browse/PRM-160" target="_blank" rel="noopener">Open</a></td></tr>
+          <tr class="search-item" data-kind="action"><td>William Kolpasky</td><td><span class="pill red">High</span></td><td>Today</td><td>Resolve ADM-2847 decrement setting, reason-code behavior, and negative-inventory prevention.</td><td><a href="https://365retailmarkets.atlassian.net/browse/ADM-2847" target="_blank" rel="noopener">Open</a></td></tr>
+          <tr class="search-item" data-kind="action"><td>Michael Wood / Pankaj Chobharkar</td><td><span class="pill red">High</span></td><td>Today</td><td>Close the HeatWave parsing-library approach and confirm ownership for KIO-1877.</td><td><a href="https://365retailmarkets.atlassian.net/browse/KIO-1877" target="_blank" rel="noopener">Open</a></td></tr>
+          <tr class="search-item" data-kind="action"><td>Rashmi Chamakeri</td><td><span class="pill red">High</span></td><td>This week</td><td>Advance ADM-285 dev review and reconcile recall-management story split/dependencies.</td><td><a href="https://365retailmarkets.atlassian.net/browse/ADM-285" target="_blank" rel="noopener">Open</a></td></tr>
+          <tr class="search-item" data-kind="action"><td>PavanK</td><td><span class="pill red">High</span></td><td>This week</td><td>Rebaseline overdue schema/API work for recalled data and expired/recalled reporting.</td><td><a href="https://365retailmarkets.atlassian.net/browse/ADM-4074" target="_blank" rel="noopener">Open</a></td></tr>
+          <tr class="search-item" data-kind="action"><td>Smita Kotecha</td><td><span class="pill yellow">Medium</span></td><td>This week</td><td>Confirm MM-88 intake path and Castles scanner support impact.</td><td><a href="https://365retailmarkets.atlassian.net/browse/MM-88" target="_blank" rel="noopener">Open</a></td></tr>
         </tbody>
       </table>
-    </section>
+    </div>
+  </section>
 
-    <section class="two-col">
-      <div class="panel">
-        <div class="panel-header">
-          <div>
-            <h2>Material Change Log</h2>
-            <p class="section-note">Latest skim signals only.</p>
-          </div>
-        </div>
-        <div class="timeline">
-          <div class="timeline-item">
-            <div class="timeline-title">Chetan posted active follow-ups in the project Slack channel</div>
-            <div class="timeline-meta">2026-06-23 01:40 CDT · Slack #prm-160-gs1-datamatrix-scan-pay</div>
-            <div class="timeline-body">Called out three decision/action areas: 365Pay scope, inventory decrement / negative inventory prevention, and the HeatWave parsing epic.</div>
-          </div>
-          <div class="timeline-item">
-            <div class="timeline-title">Baseline corrected to June 17 solution design review</div>
-            <div class="timeline-meta">2026-06-17 meeting transcript + notes</div>
-            <div class="timeline-body">Best-before out of R1, no ADM normalization, recall management in ADM, location toggle controls only expiry/recall workflow.</div>
-          </div>
-          <div class="timeline-item">
-            <div class="timeline-title">Solution design page needs reconciliation</div>
-            <div class="timeline-meta">Current Confluence design page</div>
-            <div class="timeline-body">Design text still includes stale normalization/inventory assumptions that should be updated to match the meeting decisions.</div>
-          </div>
-        </div>
-      </div>
+  <section>
+    <h2>Open Decisions</h2>
+    <div class="content">
+      <table>
+        <thead><tr><th>Decision</th><th>Why it matters</th><th>Status</th></tr></thead>
+        <tbody>
+          <tr class="search-item" data-kind="decision"><td>Is 365Pay explicitly out of R1?</td><td>Slack raised the question directly; if excluded, scan behavior and pay-app impact must be documented.</td><td><span class="pill yellow">Open</span></td></tr>
+          <tr class="search-item" data-kind="decision"><td>Where does canonical GTIN normalization live?</td><td>ADM-2849 was abandoned while the parser epic requires GTIN handling and normalization decisions.</td><td><span class="pill yellow">Open</span></td></tr>
+          <tr class="search-item" data-kind="decision"><td>Inventory decrement settings / negative inventory</td><td>Needed to prevent repeated scans from driving inventory below zero.</td><td><span class="pill yellow">Open</span></td></tr>
+          <tr class="search-item" data-kind="decision"><td>Castles scanner support path</td><td>External ticket suggests vendor/device work may be required.</td><td><span class="pill yellow">Open</span></td></tr>
+          <tr class="search-item" data-kind="decision"><td>Split-release acceptance path</td><td>ADM is targeting Jul 16 while KIO/MM is targeting Aug 27.</td><td><span class="pill yellow">Open</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
 
-      <div class="panel">
-        <div class="panel-header">
-          <div>
-            <h2>Decision Log</h2>
-            <p class="section-note">Use this to distinguish decisions from open items.</p>
-          </div>
-        </div>
-        <ul class="decision-list">
-          <li><strong>Best-before dates:</strong> Out of R1; focus on GTIN, expiry, and lot/batch.</li>
-          <li><strong>ADM GTIN normalization:</strong> Do not normalize in ADM; operator-entered values should match package codes.</li>
-          <li><strong>Leading zeros:</strong> Treat according to matching behavior discussed in the spec; do not bulk-convert existing codes.</li>
-          <li><strong>Location toggle:</strong> Controls expiry/recall workflow only, not base GS1 scanning.</li>
-          <li><strong>Recall management:</strong> Lives in ADM with recall records and recall-product mappings.</li>
-          <li><strong>Offline support:</strong> Device-local storage and sync back to SOSDB remain the intended path.</li>
-        </ul>
-      </div>
-    </section>
+  <section>
+    <h2>Risk Register</h2>
+    <div class="content">
+      <table>
+        <thead><tr><th>Risk</th><th>Impact</th><th>Severity</th></tr></thead>
+        <tbody>
+          <tr class="search-item" data-kind="risk"><td>Cross-release sequencing</td><td>ADM functionality may land before kiosk/MM consumers can fully exercise it.</td><td><span class="pill red">High</span></td></tr>
+          <tr class="search-item" data-kind="risk"><td>Inventory decrement unresolved</td><td>Compliance reporting and operator removal workflows stay blocked until decrement/reason-code behavior is closed.</td><td><span class="pill red">High</span></td></tr>
+          <tr class="search-item" data-kind="risk"><td>New parser library introduced late</td><td>KIO-1877 adds architecture and ROM work after SD review.</td><td><span class="pill red">High</span></td></tr>
+          <tr class="search-item" data-kind="risk"><td>Castles device compatibility</td><td>Scanner support issue could require vendor/device work outside the current Jira plan.</td><td><span class="pill red">High</span></td></tr>
+          <tr class="search-item" data-kind="risk"><td>Schema/API due dates</td><td>Recall and expired/recalled reporting depends on schema/API work that is near or past due.</td><td><span class="pill yellow">Medium</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
 
-    <section class="panel">
-      <div class="panel-header">
-        <div>
-          <h2>Source Links</h2>
-          <p class="section-note">Primary artifacts used by the skimmer.</p>
-        </div>
-      </div>
-      <ul class="source-list">
-        <li><a href="https://365retailmarkets.atlassian.net/browse/PRM-160" target="_blank" rel="noopener">Jira PRM-160</a> — initiative status and scope.</li>
-        <li><a href="https://365retailmarkets.atlassian.net/wiki/spaces/PS/pages/6746537995/Solution+Design+PRM-160+GS1+DataMatrix+Functionality+for+Scan+and+Pay+R1" target="_blank" rel="noopener">Solution Design: PRM-160 GS1 DataMatrix</a> — design baseline and open questions.</li>
-        <li><a href="https://365retailmarkets.slack.com/docs/T07PAS6KY/F0BC66UJM3P" target="_blank" rel="noopener">PRM-160 Project Canvas</a> — project hub and artifacts.</li>
-        <li><a href="https://365retailmarkets.slack.com/archives/C0BBTQNUMHD" target="_blank" rel="noopener">Slack Project Channel</a> — latest follow-ups and stakeholder coordination.</li>
-      </ul>
-    </section>
+  <section>
+    <h2>Project Artifacts</h2>
+    <div class="content">
+      <table>
+        <thead><tr><th>Artifact</th><th>Link</th></tr></thead>
+        <tbody>
+          <tr class="search-item" data-kind="artifact"><td>PRM-160 Jira</td><td><a href="https://365retailmarkets.atlassian.net/browse/PRM-160" target="_blank" rel="noopener">https://365retailmarkets.atlassian.net/browse/PRM-160</a></td></tr>
+          <tr class="search-item" data-kind="artifact"><td>Solution Design</td><td><a href="https://365retailmarkets.atlassian.net/wiki/spaces/PS/pages/6746537995/Solution+Design+PRM-160+GS1+DataMatrix+Functionality+for+Scan+and+Pay+R1" target="_blank" rel="noopener">https://365retailmarkets.atlassian.net/wiki/spaces/PS/pages/6746537995/Solution+Design+PRM-160+GS1+DataMatrix+Functionality+for+Scan+and+Pay+R1</a></td></tr>
+          <tr class="search-item" data-kind="artifact"><td>Project Canvas</td><td><a href="https://365retailmarkets.atlassian.net/wiki/spaces/PS/pages/6752796710/PRM-160+GS1+Datamatrix+functionality+-+Scan+Pay+R1" target="_blank" rel="noopener">https://365retailmarkets.atlassian.net/wiki/spaces/PS/pages/6752796710/PRM-160+GS1+Datamatrix+functionality+-+Scan+Pay+R1</a></td></tr>
+          <tr class="search-item" data-kind="artifact"><td>Slack Channel</td><td><a href="https://365retailmarkets.slack.com/archives/C0BBTQNUMHD" target="_blank" rel="noopener">https://365retailmarkets.slack.com/archives/C0BBTQNUMHD</a></td></tr>
+          <tr class="search-item" data-kind="artifact"><td>GitHub Pages URL</td><td><a href="https://jwackerm.github.io/html/prm-160/prm-160-skimmer-dashboard.html" target="_blank" rel="noopener">https://jwackerm.github.io/html/prm-160/prm-160-skimmer-dashboard.html</a></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
 
-    <div class="footer-note">Generated from the PRM-160 skimmer output. This dashboard is static HTML; use browser refresh after regenerating from a new skim.</div>
-  </main>
+  <section>
+    <h2>Slack-Ready Summary</h2>
+    <div class="content">
+      <div class="copybox">PRM-160 daily skim: 🟡 At Risk.
 
-  <script>
-    function setStatusFilter(status, card) {
-      document.getElementById('statusFilter').value = status;
-      document.querySelectorAll('.status-card').forEach(c => c.classList.remove('active'));
-      card.classList.add('active');
-      applyFilters();
+Material changes:
+• KIO-1877 created for a dedicated HeatWave GS1 parsing library.
+• ADM-285 moved to Ready for Dev Review.
+• Email alerts and ADM GTIN normalization were moved out / abandoned.
+• Open blockers remain around 365Pay scope, inventory decrement behavior, Castles support, and ADM vs KIO/MM sequencing.
+
+Dashboard: https://jwackerm.github.io/html/prm-160/prm-160-skimmer-dashboard.html
+
+Replace file:
+html/prm-160/prm-160-skimmer-dashboard.html</div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Source Coverage</h2>
+    <div class="content">
+      <p><strong>Checked:</strong> Jira, Confluence, Slack channel C0BBTQNUMHD, SharePoint search, Outlook email, Outlook Calendar, and Teams search.</p>
+      <p><strong>Notes:</strong> Slack follow-up raised 365Pay, decrement, and HeatWave ownership questions. Outlook contained the June 17 meeting recap. Teams and SharePoint searches did not surface a richer source than the recap in this pass.</p>
+      <p><strong>Generated:</strong> 2026-06-24 07:30 CT · <strong>File:</strong> prm-160-skimmer-dashboard.html</p>
+    </div>
+  </section>
+
+  <div class="footer">Standalone HTML with inline CSS/JS. No external scripts required.</div>
+</main>
+
+<script>
+const buttons = document.querySelectorAll('button[data-filter]');
+const search = document.getElementById('search');
+function applyFilters() {
+  const active = document.querySelector('button.active').dataset.filter;
+  const q = search.value.trim().toLowerCase();
+  document.querySelectorAll('.search-item').forEach(el => {
+    const kind = (el.dataset.kind || '').toLowerCase();
+    const text = el.innerText.toLowerCase();
+    const ok = (active === 'all' || kind === active) && (!q || text.includes(q));
+    if (el.tagName === 'TR') {
+      el.style.display = ok ? '' : 'none';
+    } else {
+      el.classList.toggle('hidden', !ok);
     }
-
-    function resetFilters() {
-      document.getElementById('statusFilter').value = '';
-      document.getElementById('ownerFilter').value = '';
-      document.getElementById('searchBox').value = '';
-      document.querySelectorAll('.status-card').forEach(c => c.classList.remove('active'));
-      applyFilters();
-    }
-
-    function applyFilters() {
-      const status = document.getElementById('statusFilter').value.toLowerCase();
-      const owner = document.getElementById('ownerFilter').value.toLowerCase();
-      const search = document.getElementById('searchBox').value.toLowerCase();
-      const rows = document.querySelectorAll('#actionTable tbody tr');
-
-      rows.forEach(row => {
-        const rowStatus = (row.dataset.status || '').toLowerCase();
-        const rowOwner = (row.dataset.owner || '').toLowerCase();
-        const rowText = (row.dataset.text + ' ' + row.innerText).toLowerCase();
-
-        const matchesStatus = !status || rowStatus === status || (status === 'on track' && rowStatus === 'on track');
-        const matchesOwner = !owner || rowOwner.includes(owner);
-        const matchesSearch = !search || rowText.includes(search);
-
-        row.classList.toggle('hidden', !(matchesStatus && matchesOwner && matchesSearch));
-      });
-    }
-  </script>
+  });
+}
+buttons.forEach(btn => btn.addEventListener('click', () => {
+  buttons.forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  applyFilters();
+}));
+search.addEventListener('input', applyFilters);
+</script>
 </body>
 </html>
